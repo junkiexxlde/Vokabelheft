@@ -1,0 +1,133 @@
+/* Forcer le rechargement des polices */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Vérifier que le fichier CSS contient bien les styles personnalisés */
+:root {
+    --primary-color: #4F46E5;
+    --primary-hover: #4338CA;
+    --secondary-color: #6B7280;
+    --success-color: #10B981;
+    --success-hover: #059669;
+    --danger-color: #EF4444;
+    --danger-hover: #DC2626;
+    --warning-color: #F59E0B;
+    --info-color: #3B82F6;
+
+    --bg-primary: #F9FAFB;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #E5E7EB;
+
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #9CA3AF;
+
+    --border-color: #D1D5DB;
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    --transition: all 0.2s ease;
+
+    --german-color: #1F2937;
+    --english-color: #374151;
+
+    --recording-color: #EF4444;
+    --processing-color: #F59E0B;
+}
+
+/* Styles de base */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Conteneur principal */
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* En-tête */
+.header {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Titre de l'application */
+.app-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Boutons */
+.btn {
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Dark mode overrides */
+body.dark-mode {
+    background: #0f172a;
+    color: #e6eef8;
+}
+
+body.dark-mode .header {
+    background: #0b1220;
+    color: #e6eef8;
+}
+
+body.dark-mode textarea,
+body.dark-mode input {
+    background: #0b1220;
+    color: #e6eef8;
+    border-color: #374151;
+}
+
+body.dark-mode table thead {
+    background: #111827;
+    color: #e6eef8;
+}
+
+body.dark-mode .btn {
+    background: #374151;
+    color: #f8fafc;
+}
+
+body.dark-mode .btn.btn-primary {
+    background: #4f46e5;
+    color: #fff;
+}

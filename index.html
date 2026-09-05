@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabelheft - Vocabulary Notebook</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="app-title">Vokabelheft</div>
+            <div>
+                <button id="darkModeBtn" class="btn btn-primary">🌓 Dark Mode</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="input-section" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+                <div style="flex:1;min-width:280px;">
+                    <h2>German</h2>
+                    <div style="display:flex;gap:8px;align-items:flex-start;">
+                        <textarea id="germanInput" placeholder="Enter German word/phrase..." rows="2" style="flex:1;"></textarea>
+                        <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                            <button id="translateDeEnGoogleInline" class="btn">🌐 Translate</button>
+                            <button id="searchDeInline" class="btn">🔎 Search</button>
+                        </div>
+                    </div>
+                    <div id="germanStatus" class="input-status" style="margin-top:6px;font-size:12px;color:#6b7280"></div>
+                    <div class="button-group">
+                        <button id="recordGermanBtn">🎤 Speak</button>
+                        <button id="stopGermanBtn" style="display:none">■ Stop</button>
+                        <button id="translateDeEnDeepL">Translate with DeepL</button>
+                        <button id="translateDeEnGoogle">Translate with Google</button>
+                        <button id="translateDeEnBing">Translate with Bing</button>
+                        <button id="translateDeEnMistral">Translate with Mistral</button>
+                        <button id="translateDeEnOpenTran">Translate with OpenTran</button>
+                    </div>
+                </div>
+
+                <div style="flex:1;min-width:280px;">
+                    <h2>English</h2>
+                    <div style="display:flex;gap:8px;align-items:flex-start;">
+                        <textarea id="englishInput" placeholder="Enter English word/phrase..." rows="2" style="flex:1;"></textarea>
+                        <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                            <button id="translateEnDeGoogleInline" class="btn">🌐 Translate</button>
+                            <button id="searchEnInline" class="btn">🔎 Search</button>
+                        </div>
+                    </div>
+                    <div id="englishStatus" class="input-status" style="margin-top:6px;font-size:12px;color:#6b7280"></div>
+                    <div class="button-group">
+                        <button id="recordEnglishBtn">🎤 Speak</button>
+                        <button id="stopEnglishBtn" style="display:none">■ Stop</button>
+                        <button id="translateEnDeDeepL">Translate with DeepL</button>
+                        <button id="translateEnDeGoogle">Translate with Google</button>
+                        <button id="translateEnDeBing">Translate with Bing</button>
+                        <button id="translateEnDeMistral">Translate with Mistral</button>
+                        <button id="translateEnDeOpenTran">Translate with OpenTran</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Modal -->
+            <div id="settingsModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+                <div class="modal-content" style="background:white;padding:20px;border-radius:8px;max-width:900px;width:95%;max-height:80vh;overflow:auto;">
+                    <h3>Vocabulary Settings</h3>
+                    <p>Edit, delete, or manually add vocabulary entries.</p>
+
+                    <div style="margin-bottom:12px;display:flex;gap:8px;">
+                        <input id="settingsGermanInput" placeholder="German" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
+                        <input id="settingsEnglishInput" placeholder="English" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
+                        <button id="settingsAddBtn" class="btn">Add</button>
+                        <button id="settingsCloseBtn" class="btn">Close</button>
+                    </div>
+
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;">German</th><th style="padding:8px;border:1px solid #e5e7eb;">English</th><th style="padding:8px;border:1px solid #e5e7eb;">Actions</th></tr>
+                        </thead>
+                        <tbody id="settingsVocabBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <section class="actions">
+                <button id="addVocabBtn" class="btn btn-primary">Add Vocabulary</button>
+                <button id="clearBtn" class="btn">Clear Inputs</button>
+                <button id="settingsBtn" class="btn">Settings</button>
+                <button id="saveBtn" class="btn">Export as JSON</button>
+                <input type="file" id="fileInput" accept=".json" style="display:none">
+                <button id="loadBtn" class="btn" onclick="document.getElementById('fileInput').click()">Import JSON</button>
+            </section>
+
+            <section class="vocab-list">
+                <h2>Vocabulary List <span id="vocabCount" style="font-weight:normal;font-size:14px;margin-left:8px;color:#6b7280"></span></h2>
+                <table id="vocabTable">
+                    <thead>
+                        <tr>
+                            <th>German</th>
+                            <th>English</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vocabularyTableBody"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // OpenTran integration: open opentran.net search in a new tab
+        function translateWithOpenTran(text, sourceLang, targetLang) {
+            if (!text || !text.trim()) {
+                alert('Please enter text to translate');
+                return;
+            }
+            const q = encodeURIComponent(text.trim());
+            // Try the common query parameter pattern; include source/target as hints
+            const url = `https://opentran.net/?q=${q}&sl=${sourceLang.toLowerCase()}&tl=${targetLang.toLowerCase()}`;
+            window.open(url, '_blank');
+        }
+
+        document.getElementById('translateDeEnOpenTran').addEventListener('click', () => {
+            const german = document.getElementById('germanInput').value;
+            translateWithOpenTran(german, 'de', 'en');
+        });
+
+        document.getElementById('translateEnDeOpenTran').addEventListener('click', () => {
+            const english = document.getElementById('englishInput').value;
+            translateWithOpenTran(english, 'en', 'de');
+        });
+
+        // Wire service-specific translate buttons to functions defined in app.js
+        const gIn = () => document.getElementById('germanInput').value;
+        const eIn = () => document.getElementById('englishInput').value;
+
+        const tryAttach = (id, fn) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', fn);
+        };
+
+        tryAttach('translateDeEnGoogle', () => { window.translateWithGoogle ? window.translateWithGoogle(gIn(), 'DE', 'EN') : alert('Google translate not available'); });
+        tryAttach('translateEnDeGoogle', () => { window.translateWithGoogle ? window.translateWithGoogle(eIn(), 'EN', 'DE') : alert('Google translate not available'); });
+
+        // Inline translate/search buttons next to textareas use local vocabulary lookup
+        tryAttach('translateDeEnGoogleInline', () => {
+            const v = gIn();
+            if (!v || !v.trim()) { alert('No German text'); return; }
+            const result = window.lookupTranslateFromVocabulary ? window.lookupTranslateFromVocabulary(v, 'DE') : null;
+            document.getElementById('englishInput').value = result !== null ? (result || '') : 'no match';
+        });
+        tryAttach('searchDeInline', () => { const v = gIn(); if (v && v.trim()) openGoogleTranslate(v, 'de', 'en'); else alert('No German text'); });
+
+        tryAttach('translateEnDeGoogleInline', () => {
+            const v = eIn();
+            if (!v || !v.trim()) { alert('No English text'); return; }
+            const result = window.lookupTranslateFromVocabulary ? window.lookupTranslateFromVocabulary(v, 'EN') : null;
+            document.getElementById('germanInput').value = result !== null ? (result || '') : 'no match';
+        });
+        tryAttach('searchEnInline', () => { const v = eIn(); if (v && v.trim()) openGoogleTranslate(v, 'en', 'de'); else alert('No English text'); });
+
+        tryAttach('translateDeEnDeepL', () => { window.translateWithDeepL ? window.translateWithDeepL(gIn(), 'DE', 'EN') : alert('DeepL translate not available'); });
+        tryAttach('translateEnDeDeepL', () => { window.translateWithDeepL ? window.translateWithDeepL(eIn(), 'EN', 'DE') : alert('DeepL translate not available'); });
+
+        tryAttach('translateDeEnBing', () => { window.translateWithBing ? window.translateWithBing(gIn(), 'DE', 'EN') : alert('Bing translate not available'); });
+        tryAttach('translateEnDeBing', () => { window.translateWithBing ? window.translateWithBing(eIn(), 'EN', 'DE') : alert('Bing translate not available'); });
+
+        tryAttach('translateDeEnMistral', () => { window.translateWithVokabelheftAI ? window.translateWithVokabelheftAI(gIn(), 'DE', 'EN') : alert('Mistral translate not available'); });
+        tryAttach('translateEnDeMistral', () => { window.translateWithVokabelheftAI ? window.translateWithVokabelheftAI(eIn(), 'EN', 'DE') : alert('Mistral translate not available'); });
+    </script>
+</body>
+</html>
