@@ -140,34 +140,71 @@
             if (el) el.addEventListener('click', fn);
         };
 
-        tryAttach('translateDeEnGoogle', () => { window.translateWithGoogle ? window.translateWithGoogle(gIn(), 'DE', 'EN') : alert('Google translate not available'); });
-        tryAttach('translateEnDeGoogle', () => { window.translateWithGoogle ? window.translateWithGoogle(eIn(), 'EN', 'DE') : alert('Google translate not available'); });
+        const setTargetValue = (source, value) => {
+            const target = source === 'de' ? document.getElementById('englishInput') : document.getElementById('germanInput');
+            if (!target) return;
+            target.value = value === null || value === undefined || value === '' ? 'error' : value;
+        };
 
-        // Inline translate/search buttons next to textareas use local vocabulary lookup
+        const providerErrorText = (provider) => {
+            const map = {
+                google: 'Google API error',
+                deepl: 'DeepL API error',
+                bing: 'Bing API error',
+                mistral: 'Mistral API error'
+            };
+            return map[provider] || 'Provider error';
+        };
+
+        const runProviderTranslate = async (provider, source, value) => {
+            if (!value || !value.trim()) {
+                alert(source === 'de' ? 'No German text' : 'No English text');
+                return;
+            }
+
+            try {
+                let result = '';
+                if (provider === 'google') result = await window.translateWithGoogle(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
+                else if (provider === 'deepl') result = await window.translateWithDeepL(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
+                else if (provider === 'bing') result = await window.translateWithBing(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
+                else if (provider === 'mistral') result = await window.translateWithVokabelheftAI(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
+
+                if (!result || !result.trim()) {
+                    setTargetValue(source, providerErrorText(provider));
+                } else {
+                    setTargetValue(source, result);
+                }
+            } catch (error) {
+                setTargetValue(source, providerErrorText(provider));
+            }
+        };
+
+        tryAttach('translateDeEnGoogle', () => { runProviderTranslate('google', 'de', gIn()); });
+        tryAttach('translateEnDeGoogle', () => { runProviderTranslate('google', 'en', eIn()); });
+
+        // Inline translate/search buttons next to textareas use local vocabulary lookup first and fallback to Google Translate.
         tryAttach('translateDeEnGoogleInline', () => {
             const v = gIn();
             if (!v || !v.trim()) { alert('No German text'); return; }
-            const result = window.lookupTranslateFromVocabulary ? window.lookupTranslateFromVocabulary(v, 'DE') : null;
-            document.getElementById('englishInput').value = result !== null ? (result || '') : 'no match';
+            window.translateFromVocabularyOrGoogle ? window.translateFromVocabularyOrGoogle(v, 'de') : alert('Google translate not available');
         });
         tryAttach('searchDeInline', () => { const v = gIn(); if (v && v.trim()) openGoogleTranslate(v, 'de', 'en'); else alert('No German text'); });
 
         tryAttach('translateEnDeGoogleInline', () => {
             const v = eIn();
             if (!v || !v.trim()) { alert('No English text'); return; }
-            const result = window.lookupTranslateFromVocabulary ? window.lookupTranslateFromVocabulary(v, 'EN') : null;
-            document.getElementById('germanInput').value = result !== null ? (result || '') : 'no match';
+            window.translateFromVocabularyOrGoogle ? window.translateFromVocabularyOrGoogle(v, 'en') : alert('Google translate not available');
         });
         tryAttach('searchEnInline', () => { const v = eIn(); if (v && v.trim()) openGoogleTranslate(v, 'en', 'de'); else alert('No English text'); });
 
-        tryAttach('translateDeEnDeepL', () => { window.translateWithDeepL ? window.translateWithDeepL(gIn(), 'DE', 'EN') : alert('DeepL translate not available'); });
-        tryAttach('translateEnDeDeepL', () => { window.translateWithDeepL ? window.translateWithDeepL(eIn(), 'EN', 'DE') : alert('DeepL translate not available'); });
+        tryAttach('translateDeEnDeepL', () => { runProviderTranslate('deepl', 'de', gIn()); });
+        tryAttach('translateEnDeDeepL', () => { runProviderTranslate('deepl', 'en', eIn()); });
 
-        tryAttach('translateDeEnBing', () => { window.translateWithBing ? window.translateWithBing(gIn(), 'DE', 'EN') : alert('Bing translate not available'); });
-        tryAttach('translateEnDeBing', () => { window.translateWithBing ? window.translateWithBing(eIn(), 'EN', 'DE') : alert('Bing translate not available'); });
+        tryAttach('translateDeEnBing', () => { runProviderTranslate('bing', 'de', gIn()); });
+        tryAttach('translateEnDeBing', () => { runProviderTranslate('bing', 'en', eIn()); });
 
-        tryAttach('translateDeEnMistral', () => { window.translateWithVokabelheftAI ? window.translateWithVokabelheftAI(gIn(), 'DE', 'EN') : alert('Mistral translate not available'); });
-        tryAttach('translateEnDeMistral', () => { window.translateWithVokabelheftAI ? window.translateWithVokabelheftAI(eIn(), 'EN', 'DE') : alert('Mistral translate not available'); });
+        tryAttach('translateDeEnMistral', () => { runProviderTranslate('mistral', 'de', gIn()); });
+        tryAttach('translateEnDeMistral', () => { runProviderTranslate('mistral', 'en', eIn()); });
     </script>
 </body>
 </html>

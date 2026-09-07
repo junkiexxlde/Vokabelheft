@@ -657,6 +657,8 @@ async function translateText() {
                 updateStatus('german', 'success', 'Translation complete');
             }
             showToast('Translation completed!', 'success');
+        } else if (service === 'google') {
+            showToast('Google Translate was opened in a new tab.', 'info');
         } else {
             showToast('Translation failed. Please try again.', 'error');
         }
@@ -671,8 +673,8 @@ async function translateText() {
 }
 
 async function translateWithDeepL(text, sourceLang, targetLang) {
-    // Use DeepL API
-    const apiKey = AppState.config.deeplApiKey || prompt('Please enter your DeepL API key:');
+    // Use DeepL API only for provider buttons. No prompt here: caller decides how to handle missing key.
+    const apiKey = AppState.config.deeplApiKey;
     
     if (!apiKey) {
         throw new Error('DeepL API key is required');
@@ -708,53 +710,49 @@ async function translateWithDeepL(text, sourceLang, targetLang) {
 }
 
 async function translateWithGoogle(text, sourceLang, targetLang) {
-    // Google Translate API requires a more complex setup
-    // For now, we'll use a fallback approach
-    const apiKey = AppState.config.googleApiKey || prompt('Please enter your Google Translate API key:');
-    
+    const cleanText = (text || '').trim();
+    if (!cleanText) {
+        throw new Error('No text to translate');
+    }
+
+    const sourceCode = (sourceLang || 'de').toLowerCase();
+    const targetCode = (targetLang || 'en').toLowerCase();
+    const apiKey = AppState.config.googleApiKey;
+
     if (!apiKey) {
         throw new Error('Google API key is required');
     }
-    
-    if (!AppState.config.googleApiKey) {
-        AppState.config.googleApiKey = apiKey;
-        localStorage.setItem('googleApiKey', apiKey);
+
+    const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            q: cleanText,
+            source: sourceCode,
+            target: targetCode,
+            format: 'text'
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error('Google Translate request failed');
     }
-    
-    // Note: Google Cloud Translation API v2 is deprecated
-    // This is a placeholder - you would need to set up the proper API
-    try {
-        const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                q: text,
-                source: sourceLang.toLowerCase(),
-                target: targetLang.toLowerCase(),
-                format: 'text'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.data && data.data.translations && data.data.translations.length > 0) {
-            return data.data.translations[0].translatedText;
-        } else {
-            throw new Error(data.error?.message || 'Translation failed');
-        }
-    } catch (error) {
-        console.error('Google Translate API error:', error);
-        // Fallback to DeepL if Google fails
-        showToast('Google Translate API failed. Trying DeepL...', 'warning');
-        return translateWithDeepL(text, sourceLang, targetLang);
+
+    const data = await response.json();
+    const translated = data?.data?.translations?.[0]?.translatedText;
+
+    if (!translated) {
+        throw new Error('Google Translate returned no result');
     }
+
+    return translated;
 }
 
 async function translateWithBing(text, sourceLang, targetLang) {
     // Bing Translator API (Azure Cognitive Services)
-    const apiKey = AppState.config.bingApiKey || prompt('Please enter your Azure Bing Translator API key:');
+    const apiKey = AppState.config.bingApiKey;
     
     if (!apiKey) {
         throw new Error('Bing Translator API key is required');
@@ -797,7 +795,7 @@ async function translateWithBing(text, sourceLang, targetLang) {
 
 async function translateWithVokabelheftAI(text, sourceLang, targetLang) {
     // Vokabelheft A.I. - Simple AI-powered translator using Mistral
-    const apiKey = AppState.config.mistralApiKey || prompt('Please enter your Mistral API key:');
+    const apiKey = AppState.config.mistralApiKey;
     
     if (!apiKey) {
         throw new Error('Mistral API key is required for Vokabelheft A.I.');
@@ -1057,6 +1055,27 @@ function openGoogleTranslate(text, sourceLang, targetLang) {
     window.open(url, '_blank');
 }
 
+function translateFromVocabularyOrGoogle(text, sourceLang) {
+    const cleanText = (text || '').trim();
+    if (!cleanText) {
+        showToast('Please enter text to translate', 'warning');
+        return null;
+    }
+
+    const targetField = sourceLang === 'de' ? elements.englishInput : elements.germanInput;
+    const targetLang = sourceLang === 'de' ? 'en' : 'de';
+    const result = lookupTranslateFromVocabulary(cleanText, sourceLang);
+
+    if (result !== null) {
+        targetField.value = result;
+        return result;
+    }
+
+    targetField.value = 'no match';
+    openGoogleTranslate(cleanText, sourceLang, targetLang);
+    return null;
+}
+
 function editVocabularyEntry(id) {
     const entry = AppState.vocabulary.find(item => item.id === id);
     if (!entry) return;
@@ -1241,6 +1260,8 @@ function hideLoading() {
 
 // ===== Toast Notifications =====
 function showToast(message, type = 'info') {
+    if (!elements.toastContainer) return;
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
@@ -1296,6 +1317,7 @@ window.translateWithDeepL = translateWithDeepL;
 window.translateWithBing = translateWithBing;
 window.translateWithVokabelheftAI = translateWithVokabelheftAI;
 window.lookupTranslateFromVocabulary = lookupTranslateFromVocabulary;
+window.translateFromVocabularyOrGoogle = translateFromVocabularyOrGoogle;
 
 // Settings modal functions
 function openSettingsModal() {
