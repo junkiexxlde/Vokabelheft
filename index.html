@@ -35,6 +35,7 @@
                         <button id="translateDeEnBing">Translate with Bing</button>
                         <button id="translateDeEnMistral">Translate with Mistral</button>
                         <button id="translateDeEnOpenTran">Translate with OpenTran</button>
+                        <button id="translateDeEnFirefox">Translate with Firefox Neural</button>
                     </div>
                 </div>
 
@@ -56,6 +57,7 @@
                         <button id="translateEnDeBing">Translate with Bing</button>
                         <button id="translateEnDeMistral">Translate with Mistral</button>
                         <button id="translateEnDeOpenTran">Translate with OpenTran</button>
+                        <button id="translateEnDeFirefox">Translate with Firefox Neural</button>
                     </div>
                 </div>
             </section>
@@ -202,6 +204,17 @@
 
         tryAttach('translateDeEnBing', () => { runProviderTranslate('bing', 'de', gIn()); });
         tryAttach('translateEnDeBing', () => { runProviderTranslate('bing', 'en', eIn()); });
+
+        tryAttach('translateDeEnFirefox', () => {
+            const v = gIn();
+            if (!v || !v.trim()) { alert('No German text'); return; }
+            openGoogleTranslate(v, 'de', 'en');
+        });
+        tryAttach('translateEnDeFirefox', () => {
+            const v = eIn();
+            if (!v || !v.trim()) { alert('No English text'); return; }
+            openGoogleTranslate(v, 'en', 'de');
+        });
 
         tryAttach('translateDeEnMistral', () => { runProviderTranslate('mistral', 'de', gIn()); });
         tryAttach('translateEnDeMistral', () => { runProviderTranslate('mistral', 'en', eIn()); });
