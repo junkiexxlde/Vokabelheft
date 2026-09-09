@@ -1071,7 +1071,7 @@ function translateFromVocabularyOrGoogle(text, sourceLang) {
         return result;
     }
 
-    targetField.value = 'no match';
+    targetField.value = 'no match';<
     openGoogleTranslate(cleanText, sourceLang, targetLang);
     return null;
 }
