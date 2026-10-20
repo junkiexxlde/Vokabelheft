@@ -10,15 +10,16 @@
     <div class="app-container">
         <header class="header">
             <div class="app-title">Vokabelheft</div>
-            <div>
-                <button id="darkModeBtn" class="btn btn-primary">🌓 Dark Mode</button>
+            <div class="header-controls">
+                <button id="swapLanguagesBtn" class="btn" type="button" aria-label="Switch German and English">⇄ German ↔ English</button>
+                <button id="darkModeBtn" class="btn btn-primary" aria-label="Toggle dark mode" aria-pressed="false">🌙 Dark mode</button>
             </div>
         </header>
 
         <main>
             <section class="input-section" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
                 <div style="flex:1;min-width:280px;">
-                    <h2>German</h2>
+                    <h2 id="leftLanguageHeading">German</h2>
                     <div style="display:flex;gap:8px;align-items:flex-start;">
                         <textarea id="germanInput" placeholder="Enter German word/phrase..." rows="2" style="flex:1;"></textarea>
                         <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
@@ -34,13 +35,11 @@
                         <button id="translateDeEnGoogle">Translate with Google</button>
                         <button id="translateDeEnBing">Translate with Bing</button>
                         <button id="translateDeEnMistral">Translate with Mistral</button>
-                        <button id="translateDeEnOpenTran">Translate with OpenTran</button>
-                        <button id="translateDeEnFirefox">Translate with Firefox Neural</button>
                     </div>
                 </div>
 
                 <div style="flex:1;min-width:280px;">
-                    <h2>English</h2>
+                    <h2 id="rightLanguageHeading">English</h2>
                     <div style="display:flex;gap:8px;align-items:flex-start;">
                         <textarea id="englishInput" placeholder="Enter English word/phrase..." rows="2" style="flex:1;"></textarea>
                         <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
@@ -56,8 +55,6 @@
                         <button id="translateEnDeGoogle">Translate with Google</button>
                         <button id="translateEnDeBing">Translate with Bing</button>
                         <button id="translateEnDeMistral">Translate with Mistral</button>
-                        <button id="translateEnDeOpenTran">Translate with OpenTran</button>
-                        <button id="translateEnDeFirefox">Translate with Firefox Neural</button>
                     </div>
                 </div>
             </section>
@@ -107,117 +104,13 @@
                 </table>
             </section>
         </main>
+        <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <span id="loadingText">Processing...</span>
+        </div>
+        <div id="toastContainer" class="toast-container" aria-live="polite"></div>
     </div>
 
     <script src="app.js"></script>
-    <script>
-        // OpenTran integration: open opentran.net search in a new tab
-        function translateWithOpenTran(text, sourceLang, targetLang) {
-            if (!text || !text.trim()) {
-                alert('Please enter text to translate');
-                return;
-            }
-            const q = encodeURIComponent(text.trim());
-            // Try the common query parameter pattern; include source/target as hints
-            const url = `https://opentran.net/?q=${q}&sl=${sourceLang.toLowerCase()}&tl=${targetLang.toLowerCase()}`;
-            window.open(url, '_blank');
-        }
-
-        document.getElementById('translateDeEnOpenTran').addEventListener('click', () => {
-            const german = document.getElementById('germanInput').value;
-            translateWithOpenTran(german, 'de', 'en');
-        });
-
-        document.getElementById('translateEnDeOpenTran').addEventListener('click', () => {
-            const english = document.getElementById('englishInput').value;
-            translateWithOpenTran(english, 'en', 'de');
-        });
-
-        // Wire service-specific translate buttons to functions defined in app.js
-        const gIn = () => document.getElementById('germanInput').value;
-        const eIn = () => document.getElementById('englishInput').value;
-
-        const tryAttach = (id, fn) => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('click', fn);
-        };
-
-        const setTargetValue = (source, value) => {
-            const target = source === 'de' ? document.getElementById('englishInput') : document.getElementById('germanInput');
-            if (!target) return;
-            target.value = value === null || value === undefined || value === '' ? 'error' : value;
-        };
-
-        const providerErrorText = (provider) => {
-            const map = {
-                google: 'Google API error',
-                deepl: 'DeepL API error',
-                bing: 'Bing API error',
-                mistral: 'Mistral API error'
-            };
-            return map[provider] || 'Provider error';
-        };
-
-        const runProviderTranslate = async (provider, source, value) => {
-            if (!value || !value.trim()) {
-                alert(source === 'de' ? 'No German text' : 'No English text');
-                return;
-            }
-
-            try {
-                let result = '';
-                if (provider === 'google') result = await window.translateWithGoogle(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
-                else if (provider === 'deepl') result = await window.translateWithDeepL(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
-                else if (provider === 'bing') result = await window.translateWithBing(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
-                else if (provider === 'mistral') result = await window.translateWithVokabelheftAI(value, source.toUpperCase(), source === 'de' ? 'EN' : 'DE');
-
-                if (!result || !result.trim()) {
-                    setTargetValue(source, providerErrorText(provider));
-                } else {
-                    setTargetValue(source, result);
-                }
-            } catch (error) {
-                setTargetValue(source, providerErrorText(provider));
-            }
-        };
-
-        tryAttach('translateDeEnGoogle', () => { runProviderTranslate('google', 'de', gIn()); });
-        tryAttach('translateEnDeGoogle', () => { runProviderTranslate('google', 'en', eIn()); });
-
-        // Inline translate/search buttons next to textareas use local vocabulary lookup first and fallback to Google Translate.
-        tryAttach('translateDeEnGoogleInline', () => {
-            const v = gIn();
-            if (!v || !v.trim()) { alert('No German text'); return; }
-            window.translateFromVocabularyOrGoogle ? window.translateFromVocabularyOrGoogle(v, 'de') : alert('Google translate not available');
-        });
-        tryAttach('searchDeInline', () => { const v = gIn(); if (v && v.trim()) openGoogleTranslate(v, 'de', 'en'); else alert('No German text'); });
-
-        tryAttach('translateEnDeGoogleInline', () => {
-            const v = eIn();
-            if (!v || !v.trim()) { alert('No English text'); return; }
-            window.translateFromVocabularyOrGoogle ? window.translateFromVocabularyOrGoogle(v, 'en') : alert('Google translate not available');
-        });
-        tryAttach('searchEnInline', () => { const v = eIn(); if (v && v.trim()) openGoogleTranslate(v, 'en', 'de'); else alert('No English text'); });
-
-        tryAttach('translateDeEnDeepL', () => { runProviderTranslate('deepl', 'de', gIn()); });
-        tryAttach('translateEnDeDeepL', () => { runProviderTranslate('deepl', 'en', eIn()); });
-
-        tryAttach('translateDeEnBing', () => { runProviderTranslate('bing', 'de', gIn()); });
-        tryAttach('translateEnDeBing', () => { runProviderTranslate('bing', 'en', eIn()); });
-
-        tryAttach('translateDeEnFirefox', () => {
-            const v = gIn();
-            if (!v || !v.trim()) { alert('No German text'); return; }
-            openGoogleTranslate(v, 'de', 'en');
-        });
-        tryAttach('translateEnDeFirefox', () => {
-            const v = eIn();
-            if (!v || !v.trim()) { alert('No English text'); return; }
-            openGoogleTranslate(v, 'en', 'de');
-        });
-
-        tryAttach('translateDeEnMistral', () => { runProviderTranslate('mistral', 'de', gIn()); });
-        tryAttach('translateEnDeMistral', () => { runProviderTranslate('mistral', 'en', eIn()); });
-    </script>
 </body>
 </html>

@@ -4,12 +4,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const dotenv = require('dotenv');
+const { execFile } = require('child_process');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3007;
 
 // Middleware
 app.use(cors());
@@ -29,7 +30,70 @@ app.get('/api/health', (req, res) => {
         status: 'ok', 
         timestamp: new Date().toISOString(),
         version: '1.1.0',
-        features: ['deepl', 'google', 'bing', 'mistral']
+        features: ['local-dictionary', 'deepl', 'google', 'bing', 'mistral']
+    });
+});
+
+// Local dictionary lookup using Ubuntu's translate package.
+app.post('/api/translate/local', (req, res) => {
+    const { text, source_lang, target_lang } = req.body;
+    const query = typeof text === 'string' ? text.trim() : '';
+    const source = typeof source_lang === 'string' ? source_lang.toLowerCase() : '';
+    const target = typeof target_lang === 'string' ? target_lang.toLowerCase() : '';
+
+    if (!query || query.length > 200) {
+        return res.status(400).json({ error: 'Text must contain 1 to 200 characters' });
+    }
+    if (!((source === 'de' && target === 'en') || (source === 'en' && target === 'de'))) {
+        return res.status(400).json({ error: 'Only German-English dictionary lookups are supported' });
+    }
+
+    const args = ['-C', '-n', '-w', '-l', 'de-en'];
+    if (source === 'en') args.push('-i');
+    args.push('--', query);
+
+    execFile('translate', args, { timeout: 8000, maxBuffer: 8 * 1024 * 1024 }, (error, stdout, stderr) => {
+        if (error) {
+            if (error.code === 'ENOENT') {
+                return res.status(503).json({ error: 'The translate package is not installed or not available on the server' });
+            }
+            if (error.killed) {
+                return res.status(504).json({ error: 'Local dictionary lookup timed out' });
+            }
+            console.error('Local dictionary lookup failed:', stderr || error.message);
+            return res.status(502).json({ error: 'Local dictionary lookup failed' });
+        }
+
+        const normalize = value => value
+            .replace(/\{[^}]*\}|\[[^\]]*\]/g, '')
+            .trim()
+            .toLocaleLowerCase();
+        const translations = stdout.split(/\r?\n/)
+            .map(line => line.split(' :: '))
+            .filter(parts => parts.length > 1)
+            .filter(([sourceEntry, translatedEntry]) => {
+                const lookupEntry = source === 'de' ? sourceEntry : translatedEntry;
+                const headwords = lookupEntry.split(' | ')[0];
+                return headwords.split(';').some(word => normalize(word) === query.toLocaleLowerCase());
+            })
+            .map(([sourceEntry, translatedEntry]) => {
+                const resultEntry = source === 'de' ? translatedEntry : sourceEntry;
+                return resultEntry.split(' | ')[0].trim();
+            })
+            .filter(Boolean)
+            .filter((value, index, values) => values.indexOf(value) === index)
+            .slice(0, 8);
+
+        if (translations.length === 0) {
+            return res.status(404).json({ error: `No local dictionary entry found for “${query}”` });
+        }
+
+        res.json({
+            translation: translations.join('\n'),
+            translations,
+            source: 'local-dictionary',
+            success: true
+        });
     });
 });
 
@@ -207,7 +271,7 @@ app.post('/api/translate/bing', async (req, res) => {
         }
         
         // Azure region (using global as default)
-        const region = 'global';
+        const region = process.env.BING_REGION || 'global';
         const endpoint = 'https://api.cognitive.microsofttranslator.com';
         
         const response = await axios.post(
@@ -277,7 +341,7 @@ app.post('/api/translate/mistral', async (req, res) => {
         const response = await axios.post(
             'https://api.mistral.ai/v1/chat/completions',
             {
-                model: 'mistral-tiny',
+                model: process.env.MISTRAL_MODEL || 'mistral-small-latest',
                 messages: [{ role: 'user', content: translationPrompt }],
                 temperature: 0.1,
                 max_tokens: 200
@@ -346,7 +410,7 @@ app.use((err, req, res, next) => {
 });
 
 // ===== Start Server =====
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`✅ Vokabelheft server running on port ${PORT}`);
     console.log(`🌐 Open your browser to: http://localhost:${PORT}`);
     

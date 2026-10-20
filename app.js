@@ -8,12 +8,7 @@ const AppState = {
     mediaRecorder: null,
     audioChunks: [],
     isProcessing: false,
-    config: {
-        deeplApiKey: '',
-        googleApiKey: '',
-        bingApiKey: '',
-        mistralApiKey: ''
-    },
+    languagesSwapped: false,
     darkMode: false,
     language: 'en' // 'en' for English, 'de' for German
 };
@@ -182,8 +177,7 @@ function t(key) {
 // Helper function to update UI language
 function updateLanguageUI() {
     // Update all UI elements with current language
-    if (elements.germanInput) elements.germanInput.placeholder = t('germanColumn') + '...';
-    if (elements.englishInput) elements.englishInput.placeholder = t('englishColumn') + '...';
+    updateLanguageDirectionUI();
 
     // Update button texts
     if (elements.addVocabBtn) elements.addVocabBtn.innerHTML = '<span class="btn-icon">➕</span> ' + t('addVocabBtn');
@@ -237,10 +231,52 @@ function updateVocabularyCount() {
     elements.vocabCount.textContent = `${AppState.vocabulary.length} ${t('vocabCount')}`;
 }
 
+function getInputForLanguage(language) {
+    const germanInput = AppState.languagesSwapped ? elements.englishInput : elements.germanInput;
+    const englishInput = AppState.languagesSwapped ? elements.germanInput : elements.englishInput;
+    return language === 'german' || language === 'de' ? germanInput : englishInput;
+}
+
+function getStatusForLanguage(language) {
+    const germanStatus = AppState.languagesSwapped ? elements.englishStatus : elements.germanStatus;
+    const englishStatus = AppState.languagesSwapped ? elements.germanStatus : elements.englishStatus;
+    return language === 'german' || language === 'de' ? germanStatus : englishStatus;
+}
+
+function getRecordingButtons(language) {
+    const useLeftColumn = language === 'german' ? !AppState.languagesSwapped : AppState.languagesSwapped;
+    return useLeftColumn
+        ? { record: elements.recordGermanBtn, stop: elements.stopGermanBtn }
+        : { record: elements.recordEnglishBtn, stop: elements.stopEnglishBtn };
+}
+
+function getLanguageForSlot(slot) {
+    if (slot === 'german') return AppState.languagesSwapped ? 'en' : 'de';
+    return AppState.languagesSwapped ? 'de' : 'en';
+}
+
+function updateLanguageDirectionUI() {
+    const label = language => language === 'de' ? t('germanColumn') : t('englishColumn');
+    const leftLanguage = getLanguageForSlot('german');
+    const rightLanguage = getLanguageForSlot('english');
+    const leftHeading = document.getElementById('leftLanguageHeading');
+    const rightHeading = document.getElementById('rightLanguageHeading');
+    const swapButton = document.getElementById('swapLanguagesBtn');
+
+    if (leftHeading) leftHeading.textContent = label(leftLanguage);
+    if (rightHeading) rightHeading.textContent = label(rightLanguage);
+    if (elements.germanInput) elements.germanInput.placeholder = `${label(leftLanguage)}...`;
+    if (elements.englishInput) elements.englishInput.placeholder = `${label(rightLanguage)}...`;
+    if (swapButton) {
+        swapButton.textContent = `⇄ ${label(leftLanguage)} ↔ ${label(rightLanguage)}`;
+        swapButton.setAttribute('aria-label', `Switch ${label(leftLanguage)} and ${label(rightLanguage)}`);
+        swapButton.setAttribute('aria-pressed', String(AppState.languagesSwapped));
+    }
+}
+
 // ===== Initialization =====
 function init() {
     setupEventListeners();
-    loadConfig();
     loadPreferences();
     renderVocabulary();
     checkSpeechRecognitionSupport();
@@ -253,10 +289,10 @@ function init() {
 // ===== Event Listeners =====
 function setupEventListeners() {
     // Attach event listeners only if the elements exist (prevents errors when index.html has different markup)
-    if (elements.recordGermanBtn) elements.recordGermanBtn.addEventListener('click', () => startRecording('german'));
-    if (elements.stopGermanBtn) elements.stopGermanBtn.addEventListener('click', () => stopRecording('german'));
-    if (elements.recordEnglishBtn) elements.recordEnglishBtn.addEventListener('click', () => startRecording('english'));
-    if (elements.stopEnglishBtn) elements.stopEnglishBtn.addEventListener('click', () => stopRecording('english'));
+    if (elements.recordGermanBtn) elements.recordGermanBtn.addEventListener('click', () => startRecording(getLanguageForSlot('german') === 'de' ? 'german' : 'english'));
+    if (elements.stopGermanBtn) elements.stopGermanBtn.addEventListener('click', () => stopRecording(getLanguageForSlot('german') === 'de' ? 'german' : 'english'));
+    if (elements.recordEnglishBtn) elements.recordEnglishBtn.addEventListener('click', () => startRecording(getLanguageForSlot('english') === 'de' ? 'german' : 'english'));
+    if (elements.stopEnglishBtn) elements.stopEnglishBtn.addEventListener('click', () => stopRecording(getLanguageForSlot('english') === 'de' ? 'german' : 'english'));
 
     if (elements.translateBtn) elements.translateBtn.addEventListener('click', translateText);
     if (elements.swapBtn) elements.swapBtn.addEventListener('click', swapInputs);
@@ -272,14 +308,43 @@ function setupEventListeners() {
     if (elements.cancelCorrectionBtn) elements.cancelCorrectionBtn.addEventListener('click', closeCorrectionModal);
     if (elements.applyCorrectionBtn) elements.applyCorrectionBtn.addEventListener('click', applyCorrection);
 
-    if (elements.germanInput) elements.germanInput.addEventListener('input', () => updateStatus('german'));
-    if (elements.englishInput) elements.englishInput.addEventListener('input', () => updateStatus('english'));
+    if (elements.germanInput) elements.germanInput.addEventListener('input', () => updateStatus(getLanguageForSlot('german') === 'de' ? 'german' : 'english'));
+    if (elements.englishInput) elements.englishInput.addEventListener('input', () => updateStatus(getLanguageForSlot('english') === 'de' ? 'german' : 'english'));
 
     // Keyboard shortcuts (always attach)
     document.addEventListener('keydown', handleKeyboardShortcuts);
 
     if (elements.darkModeBtn) elements.darkModeBtn.addEventListener('click', toggleDarkMode);
     if (elements.languageBtn) elements.languageBtn.addEventListener('click', toggleLanguage);
+    const swapLanguagesButton = document.getElementById('swapLanguagesBtn');
+    if (swapLanguagesButton) swapLanguagesButton.addEventListener('click', swapInputs);
+
+    [
+        ['translateDeEnDeepL', 'deepl', 'german'],
+        ['translateEnDeDeepL', 'deepl', 'english'],
+        ['translateDeEnGoogle', 'google', 'german'],
+        ['translateEnDeGoogle', 'google', 'english'],
+        ['translateDeEnBing', 'bing', 'german'],
+        ['translateEnDeBing', 'bing', 'english'],
+        ['translateDeEnMistral', 'mistral', 'german'],
+        ['translateEnDeMistral', 'mistral', 'english']
+    ].forEach(([id, provider, sourceLang]) => {
+        const button = document.getElementById(id);
+        if (button) button.addEventListener('click', () => runProviderTranslate(provider, getLanguageForSlot(sourceLang)));
+    });
+
+    [
+        ['translateDeEnGoogleInline', 'de', true],
+        ['translateEnDeGoogleInline', 'en', true],
+        ['searchDeInline', 'de', false],
+        ['searchEnInline', 'en', false]
+    ].forEach(([id, sourceLang, checkVocabularyFirst]) => {
+        const button = document.getElementById(id);
+        if (button) {
+            const slot = sourceLang === 'de' ? 'german' : 'english';
+            button.addEventListener('click', () => runInlineTranslation(getLanguageForSlot(slot), checkVocabularyFirst));
+        }
+    });
 
     if (elements.correctionModal) {
         const content = elements.correctionModal.querySelector('.modal-content');
@@ -291,20 +356,22 @@ function setupEventListeners() {
 // Toggle dark mode
 function toggleDarkMode() {
     AppState.darkMode = !AppState.darkMode;
-    document.body.classList.toggle('dark-mode');
-    
-    // Update button icon
-    if (AppState.darkMode) {
-        elements.darkModeBtn.innerHTML = '<span class="toggle-icon">☀️</span>';
-        elements.darkModeBtn.title = (AppState.language === 'de' ? 'Dark' : 'Light') + ' Mode';
-    } else {
-        elements.darkModeBtn.innerHTML = '<span class="toggle-icon">🌙</span>';
-        elements.darkModeBtn.title = (AppState.language === 'de' ? 'Light' : 'Dark') + ' Mode';
-    }
+    document.body.classList.toggle('dark-mode', AppState.darkMode);
+    updateDarkModeUI();
     
     // Save preference
-    localStorage.setItem('darkMode', AppState.darkMode);
+    localStorage.setItem('darkMode', String(AppState.darkMode));
     showToast(AppState.darkMode ? (AppState.language === 'de' ? 'Dark Mode aktiviert' : 'Dark mode enabled') : (AppState.language === 'de' ? 'Light Mode aktiviert' : 'Light mode enabled'), 'info');
+}
+
+function updateDarkModeUI() {
+    if (!elements.darkModeBtn) return;
+
+    elements.darkModeBtn.innerHTML = AppState.darkMode
+        ? '<span class="toggle-icon">☀️</span> Light mode'
+        : '<span class="toggle-icon">🌙</span> Dark mode';
+    elements.darkModeBtn.title = AppState.darkMode ? 'Switch to light mode' : 'Switch to dark mode';
+    elements.darkModeBtn.setAttribute('aria-pressed', String(AppState.darkMode));
 }
 
 // Toggle language
@@ -349,24 +416,11 @@ function handleKeyboardShortcuts(e) {
     }
 }
 
-// ===== Configuration =====
-function loadConfig() {
-    // Try to load API keys from localStorage
-    AppState.config.deeplApiKey = localStorage.getItem('deeplApiKey') || '';
-    // Use provided Google API key as default if none saved
-    AppState.config.googleApiKey = localStorage.getItem('googleApiKey') || 'AIzaSyDSfSkNh7tGb9CQKXlPtcRvpItIufgegsE'.replace('AIzaSyDSfSkNh7tGb9CQKXlPtcRvpItIufgegsE','AIzaSyDSfSkNh7tGb9CQKXlPtcRvpItIufgegsE');
-    AppState.config.bingApiKey = localStorage.getItem('bingApiKey') || '';
-    AppState.config.mistralApiKey = localStorage.getItem('mistralApiKey') || '';
-}
-
 function loadPreferences() {
     // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode === 'true') {
-        AppState.darkMode = true;
-        document.body.classList.add('dark-mode');
-        if (elements.darkModeBtn) elements.darkModeBtn.innerHTML = '<span class="toggle-icon">☀️</span>';
-    }
+    AppState.darkMode = savedDarkMode === 'true';
+    document.body.classList.toggle('dark-mode', AppState.darkMode);
     
     // Load language preference
     const savedLanguage = localStorage.getItem('language');
@@ -376,6 +430,7 @@ function loadPreferences() {
     
     // Update UI based on loaded preferences
     updateLanguageUI();
+    updateDarkModeUI();
 }
 
 // ===== Speech Recognition =====
@@ -410,40 +465,28 @@ function checkSpeechRecognitionSupport() {
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         const language = AppState.currentLanguage;
-        const statusElement = language === 'german' ? elements.germanStatus : elements.englishStatus;
-        const inputElement = language === 'german' ? elements.germanInput : elements.englishInput;
+        const inputElement = getInputForLanguage(language);
+        const buttons = getRecordingButtons(language);
         
         updateStatus(language, 'error', `Error: ${event.error}`);
         inputElement.parentElement.classList.remove('recording');
-        
-        if (language === 'german') {
-            elements.recordGermanBtn.classList.remove('hidden');
-            elements.stopGermanBtn.classList.add('hidden');
-        } else {
-            elements.recordEnglishBtn.classList.remove('hidden');
-            elements.stopEnglishBtn.classList.add('hidden');
-        }
+        buttons.record.classList.remove('hidden');
+        buttons.stop.classList.add('hidden');
     };
     
     recognition.onresult = (event) => {
         const language = AppState.currentLanguage;
-        const inputElement = language === 'german' ? elements.germanInput : elements.englishInput;
-        const statusElement = language === 'german' ? elements.germanStatus : elements.englishStatus;
-        
-        const transcript = event.results[0][0].transcript;
+        const inputElement = getInputForLanguage(language);
+        const transcript = event.results[0][0].transcript.trim().replace(/\.+$/, '').trim();
+        const buttons = getRecordingButtons(language);
+
         inputElement.value = transcript;
         
         updateStatus(language, 'success', 'Transcription complete');
         inputElement.parentElement.classList.remove('recording');
         
-        // Show correction option if transcript might be incorrect
-        if (language === 'german') {
-            elements.recordGermanBtn.classList.remove('hidden');
-            elements.stopGermanBtn.classList.add('hidden');
-        } else {
-            elements.recordEnglishBtn.classList.remove('hidden');
-            elements.stopEnglishBtn.classList.add('hidden');
-        }
+        buttons.record.classList.remove('hidden');
+        buttons.stop.classList.add('hidden');
         
         // Ask if user wants to correct the transcription
         setTimeout(() => {
@@ -478,19 +521,14 @@ function startRecording(language) {
     
     try {
         // Show recording state
-        const inputElement = language === 'german' ? elements.germanInput : elements.englishInput;
-        const statusElement = language === 'german' ? elements.germanStatus : elements.englishStatus;
+        const inputElement = getInputForLanguage(language);
         
         inputElement.parentElement.classList.add('recording');
         updateStatus(language, 'recording', 'Recording... Speak now');
         
-        if (language === 'german') {
-            elements.recordGermanBtn.classList.add('hidden');
-            elements.stopGermanBtn.classList.remove('hidden');
-        } else {
-            elements.recordEnglishBtn.classList.add('hidden');
-            elements.stopEnglishBtn.classList.remove('hidden');
-        }
+        const buttons = getRecordingButtons(language);
+        buttons.record.classList.add('hidden');
+        buttons.stop.classList.remove('hidden');
         
         // Clear previous input
         inputElement.value = '';
@@ -509,19 +547,14 @@ function stopRecording(language) {
     try {
         recognition.stop();
         
-        const inputElement = language === 'german' ? elements.germanInput : elements.englishInput;
-        const statusElement = language === 'german' ? elements.germanStatus : elements.englishStatus;
+        const inputElement = getInputForLanguage(language);
         
         inputElement.parentElement.classList.remove('recording');
         updateStatus(language, '', '');
         
-        if (language === 'german') {
-            elements.recordGermanBtn.classList.remove('hidden');
-            elements.stopGermanBtn.classList.add('hidden');
-        } else {
-            elements.recordEnglishBtn.classList.remove('hidden');
-            elements.stopEnglishBtn.classList.add('hidden');
-        }
+        const buttons = getRecordingButtons(language);
+        buttons.record.classList.remove('hidden');
+        buttons.stop.classList.add('hidden');
         
     } catch (error) {
         console.error('Error stopping recording:', error);
@@ -563,9 +596,9 @@ function applyCorrection() {
     }
     
     if (currentCorrectionLanguage === 'german') {
-        elements.germanInput.value = correctedText;
+        getInputForLanguage('german').value = correctedText;
     } else {
-        elements.englishInput.value = correctedText;
+        getInputForLanguage('english').value = correctedText;
     }
     
     updateStatus(currentCorrectionLanguage, 'success', 'Correction applied');
@@ -575,7 +608,7 @@ function applyCorrection() {
 
 // ===== Status Updates =====
 function updateStatus(language, type = '', message = '') {
-    const statusElement = language === 'german' ? elements.germanStatus : elements.englishStatus;
+    const statusElement = getStatusForLanguage(language);
     
     // Remove all classes
     statusElement.className = 'input-status';
@@ -590,35 +623,31 @@ function updateStatus(language, type = '', message = '') {
 
 // ===== Translation =====
 async function translateText() {
-    const germanText = elements.germanInput.value.trim();
-    const englishText = elements.englishInput.value.trim();
-    const service = elements.translationService.value;
+    const leftText = elements.germanInput.value.trim();
+    const rightText = elements.englishInput.value.trim();
+    const service = elements.translationService?.value || 'local';
     
-    // Determine source and target
     let sourceLang, targetLang, textToTranslate;
     
-    if (germanText && !englishText) {
-        // German to English
-        sourceLang = 'DE';
-        targetLang = 'EN';
-        textToTranslate = germanText;
-    } else if (englishText && !germanText) {
-        // English to German
-        sourceLang = 'EN';
-        targetLang = 'DE';
-        textToTranslate = englishText;
-    } else if (germanText && englishText) {
-        // Both have text, ask which to translate
-        const choice = confirm('Both fields have text. Translate German to English? (Click OK for German→English, Cancel for English→German)');
+    if (leftText && !rightText) {
+        sourceLang = getLanguageForSlot('german').toUpperCase();
+        targetLang = sourceLang === 'DE' ? 'EN' : 'DE';
+        textToTranslate = leftText;
+    } else if (rightText && !leftText) {
+        sourceLang = getLanguageForSlot('english').toUpperCase();
+        targetLang = sourceLang === 'DE' ? 'EN' : 'DE';
+        textToTranslate = rightText;
+    } else if (leftText && rightText) {
+        const leftLanguage = getLanguageForSlot('german');
+        const choice = confirm(`Both fields have text. Translate ${leftLanguage === 'de' ? 'German to English' : 'English to German'}? (Click OK for the left field, Cancel for the right field)`);
         if (choice) {
-            sourceLang = 'DE';
-            targetLang = 'EN';
-            textToTranslate = germanText;
+            sourceLang = leftLanguage.toUpperCase();
+            textToTranslate = leftText;
         } else {
-            sourceLang = 'EN';
-            targetLang = 'DE';
-            textToTranslate = englishText;
+            sourceLang = getLanguageForSlot('english').toUpperCase();
+            textToTranslate = rightText;
         }
+        targetLang = sourceLang === 'DE' ? 'EN' : 'DE';
     } else {
         showToast('Please enter text to translate', 'error');
         return;
@@ -636,7 +665,9 @@ async function translateText() {
     try {
         let translation = '';
         
-        if (service === 'vokabelheft-ai') {
+        if (service === 'local') {
+            translation = await translateWithLocalDictionary(textToTranslate, sourceLang, targetLang);
+        } else if (service === 'vokabelheft-ai' || service === 'mistral') {
             translation = await translateWithVokabelheftAI(textToTranslate, sourceLang, targetLang);
         } else if (service === 'deepl') {
             translation = await translateWithDeepL(textToTranslate, sourceLang, targetLang);
@@ -645,20 +676,14 @@ async function translateText() {
         } else if (service === 'bing') {
             translation = await translateWithBing(textToTranslate, sourceLang, targetLang);
         } else {
-            translation = await translateWithDeepL(textToTranslate, sourceLang, targetLang);
+            throw new Error(`Unknown translation service: ${service}`);
         }
         
         if (translation) {
-            if (targetLang === 'EN') {
-                elements.englishInput.value = translation;
-                updateStatus('english', 'success', 'Translation complete');
-            } else {
-                elements.germanInput.value = translation;
-                updateStatus('german', 'success', 'Translation complete');
-            }
+            const targetLanguage = targetLang === 'EN' ? 'english' : 'german';
+            getInputForLanguage(targetLanguage).value = translation;
+            updateStatus(targetLanguage, 'success', 'Translation complete');
             showToast('Translation completed!', 'success');
-        } else if (service === 'google') {
-            showToast('Google Translate was opened in a new tab.', 'info');
         } else {
             showToast('Translation failed. Please try again.', 'error');
         }
@@ -672,199 +697,6 @@ async function translateText() {
     }
 }
 
-async function translateWithDeepL(text, sourceLang, targetLang) {
-    // Use DeepL API only for provider buttons. No prompt here: caller decides how to handle missing key.
-    const apiKey = AppState.config.deeplApiKey;
-    
-    if (!apiKey) {
-        throw new Error('DeepL API key is required');
-    }
-    
-    // Save the key for future use
-    if (!AppState.config.deeplApiKey) {
-        AppState.config.deeplApiKey = apiKey;
-        localStorage.setItem('deeplApiKey', apiKey);
-    }
-    
-    const url = 'https://api-free.deepl.com/v2/translate';
-    const params = new URLSearchParams({
-        auth_key: apiKey,
-        text: text,
-        source_lang: sourceLang,
-        target_lang: targetLang
-    });
-    
-    try {
-        const response = await fetch(`${url}?${params}`);
-        const data = await response.json();
-        
-        if (data.translations && data.translations.length > 0) {
-            return data.translations[0].text;
-        } else {
-            throw new Error(data.message || 'Translation failed');
-        }
-    } catch (error) {
-        console.error('DeepL API error:', error);
-        throw error;
-    }
-}
-
-async function translateWithGoogle(text, sourceLang, targetLang) {
-    const cleanText = (text || '').trim();
-    if (!cleanText) {
-        throw new Error('No text to translate');
-    }
-
-    const sourceCode = (sourceLang || 'de').toLowerCase();
-    const targetCode = (targetLang || 'en').toLowerCase();
-    const apiKey = AppState.config.googleApiKey;
-
-    if (!apiKey) {
-        throw new Error('Google API key is required');
-    }
-
-    const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            q: cleanText,
-            source: sourceCode,
-            target: targetCode,
-            format: 'text'
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error('Google Translate request failed');
-    }
-
-    const data = await response.json();
-    const translated = data?.data?.translations?.[0]?.translatedText;
-
-    if (!translated) {
-        throw new Error('Google Translate returned no result');
-    }
-
-    return translated;
-}
-
-async function translateWithBing(text, sourceLang, targetLang) {
-    // Bing Translator API (Azure Cognitive Services)
-    const apiKey = AppState.config.bingApiKey;
-    
-    if (!apiKey) {
-        throw new Error('Bing Translator API key is required');
-    }
-    
-    if (!AppState.config.bingApiKey) {
-        AppState.config.bingApiKey = apiKey;
-        localStorage.setItem('bingApiKey', apiKey);
-    }
-    
-    // Azure region (using global as default)
-    const region = 'global';
-    const endpoint = `https://api.cognitive.microsofttranslator.com`;
-    
-    try {
-        const response = await fetch(`${endpoint}/translate?api-version=3.0&from=${sourceLang.toLowerCase()}&to=${targetLang.toLowerCase()}`, {
-            method: 'POST',
-            headers: {
-                'Ocp-Apim-Subscription-Key': apiKey,
-                'Ocp-Apim-Subscription-Region': region,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify([{ text: text }])
-        });
-        
-        const data = await response.json();
-        
-        if (data && data.length > 0 && data[0].translations && data[0].translations.length > 0) {
-            return data[0].translations[0].text;
-        } else {
-            throw new Error(data.error?.message || 'Translation failed');
-        }
-    } catch (error) {
-        console.error('Bing Translator API error:', error);
-        // Fallback to Vokabelheft A.I. if Bing fails
-        showToast('Bing Translator API failed. Trying Vokabelheft A.I....', 'warning');
-        return translateWithVokabelheftAI(text, sourceLang, targetLang);
-    }
-}
-
-async function translateWithVokabelheftAI(text, sourceLang, targetLang) {
-    // Vokabelheft A.I. - Simple AI-powered translator using Mistral
-    const apiKey = AppState.config.mistralApiKey;
-    
-    if (!apiKey) {
-        throw new Error('Mistral API key is required for Vokabelheft A.I.');
-    }
-    
-    if (!AppState.config.mistralApiKey) {
-        AppState.config.mistralApiKey = apiKey;
-        localStorage.setItem('mistralApiKey', apiKey);
-    }
-    
-    // Convert language codes to language names for the prompt
-    const languageMap = {
-        'DE': 'German',
-        'EN': 'English',
-        'FR': 'French',
-        'ES': 'Spanish',
-        'IT': 'Italian',
-        'NL': 'Dutch',
-        'PL': 'Polish',
-        'RU': 'Russian',
-        'PT': 'Portuguese',
-        'JA': 'Japanese',
-        'ZH': 'Chinese'
-    };
-    
-    const sourceLanguage = languageMap[sourceLang] || sourceLang;
-    const targetLanguage = languageMap[targetLang] || targetLang;
-    
-    const translationPrompt = `You are a professional translator. Please translate the following text from ${sourceLanguage} to ${targetLanguage}. Only provide the translation, without any additional text, explanations, or formatting. The text to translate is: "${text}"`;
-    
-    try {
-        // Use Mistral's API
-        const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'mistral-tiny',
-                messages: [
-                    {
-                        role: 'user',
-                        content: translationPrompt
-                    }
-                ],
-                temperature: 0.1,
-                max_tokens: 200
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-            const translation = data.choices[0].message.content.trim();
-            
-            // Remove any quotes or formatting that might have been added
-            return translation.replace(/^['""]|['""]$/g, '');
-        } else {
-            throw new Error(data.error?.message || 'Translation failed');
-        }
-    } catch (error) {
-        console.error('Mistral API error:', error);
-        // Fallback to DeepL if Mistral fails
-        showToast('Vokabelheft A.I. failed. Trying DeepL...', 'warning');
-        return translateWithDeepL(text, sourceLang, targetLang);
-    }
-}
-
 // ===== Swap Functionality =====
 function swapInputs() {
     const temp = elements.germanInput.value;
@@ -874,16 +706,21 @@ function swapInputs() {
     // Swap status
     const germanStatus = elements.germanStatus.textContent;
     const englishStatus = elements.englishStatus.textContent;
+    const germanStatusClass = elements.germanStatus.className;
+    const englishStatusClass = elements.englishStatus.className;
     elements.germanStatus.textContent = englishStatus;
     elements.englishStatus.textContent = germanStatus;
-    
-    showToast('Inputs swapped!', 'info');
+    elements.germanStatus.className = englishStatusClass;
+    elements.englishStatus.className = germanStatusClass;
+    AppState.languagesSwapped = !AppState.languagesSwapped;
+    updateLanguageDirectionUI();
+    showToast(AppState.language === 'de' ? 'Sprachen getauscht.' : 'Languages switched.', 'info');
 }
 
 // ===== Vocabulary Management =====
 function addToVocabulary() {
-    const germanText = elements.germanInput.value.trim();
-    const englishText = elements.englishInput.value.trim();
+    const germanText = getInputForLanguage('german').value.trim();
+    const englishText = getInputForLanguage('english').value.trim();
     
     if (!germanText && !englishText) {
         showToast(t('Please enter at least one word'), 'error');
@@ -1008,9 +845,11 @@ function searchVocabularyEntry(id) {
     const entry = AppState.vocabulary.find(it => it.id === id);
     if (!entry) return;
     if (entry.german && entry.german.trim()) {
-        openGoogleTranslate(entry.german, 'de', 'en');
+        getInputForLanguage('german').value = entry.german;
+        runInlineTranslation('de', false);
     } else if (entry.english && entry.english.trim()) {
-        openGoogleTranslate(entry.english, 'en', 'de');
+        getInputForLanguage('english').value = entry.english;
+        runInlineTranslation('en', false);
     } else {
         showToast('No text to search', 'warning');
     }
@@ -1049,21 +888,15 @@ function lookupTranslateFromVocabulary(text, sourceLang) {
     return null;
 }
 
-function openGoogleTranslate(text, sourceLang, targetLang) {
-    const q = encodeURIComponent(text.trim());
-    const url = `https://translate.google.com/?sl=${sourceLang.toLowerCase()}&tl=${targetLang.toLowerCase()}&text=${q}&op=translate`;
-    window.open(url, '_blank');
-}
-
 function translateFromVocabularyOrGoogle(text, sourceLang) {
     const cleanText = (text || '').trim();
     if (!cleanText) {
         showToast('Please enter text to translate', 'warning');
         return null;
     }
-
-    const targetField = sourceLang === 'de' ? elements.englishInput : elements.germanInput;
-    const targetLang = sourceLang === 'de' ? 'en' : 'de';
+    const targetField = sourceLang === 'de'
+        ? getInputForLanguage('english')
+        : getInputForLanguage('german');
     const result = lookupTranslateFromVocabulary(cleanText, sourceLang);
 
     if (result !== null) {
@@ -1071,9 +904,7 @@ function translateFromVocabularyOrGoogle(text, sourceLang) {
         return result;
     }
 
-    targetField.value = 'no match';<
-    openGoogleTranslate(cleanText, sourceLang, targetLang);
-    return null;
+    return runInlineTranslation(sourceLang, false);
 }
 
 function editVocabularyEntry(id) {
@@ -1081,21 +912,21 @@ function editVocabularyEntry(id) {
     if (!entry) return;
     
     // Fill inputs with entry data
-    elements.germanInput.value = entry.german || '';
-    elements.englishInput.value = entry.english || '';
+    getInputForLanguage('german').value = entry.german || '';
+    getInputForLanguage('english').value = entry.english || '';
     
     // Remove old entry
     deleteVocabularyEntry(id, false);
     
     // Focus on the empty field if there is one, otherwise focus on German
     if (!entry.german && entry.english) {
-        elements.germanInput.focus();
+        getInputForLanguage('german').focus();
         showToast(t('toastEditEnglish'), 'info');
     } else if (!entry.english && entry.german) {
-        elements.englishInput.focus();
+        getInputForLanguage('english').focus();
         showToast(t('toastEditGerman'), 'info');
     } else {
-        elements.germanInput.focus();
+        getInputForLanguage('german').focus();
         showToast(t('toastEditComplete'), 'info');
     }
 }
@@ -1272,11 +1103,17 @@ function showToast(message, type = 'info') {
         info: 'ℹ️'
     };
     
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close">&times;</button>
-    `;
+    const icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.textContent = icons[type] || 'ℹ️';
+    const messageElement = document.createElement('span');
+    messageElement.className = 'toast-message';
+    messageElement.textContent = String(message);
+    const closeButton = document.createElement('button');
+    closeButton.className = 'toast-close';
+    closeButton.type = 'button';
+    closeButton.textContent = '×';
+    toast.append(icon, messageElement, closeButton);
     
     elements.toastContainer.appendChild(toast);
     
@@ -1289,7 +1126,7 @@ function showToast(message, type = 'info') {
     }, 4000);
     
     // Close button
-    toast.querySelector('.toast-close').addEventListener('click', () => {
+    closeButton.addEventListener('click', () => {
         toast.style.animation = 'toastSlideIn 0.3s ease-out reverse';
         setTimeout(() => {
             toast.remove();
@@ -1398,3 +1235,118 @@ document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'settingsCloseBtn') closeSettingsModal();
     if (e.target && e.target.id === 'settingsAddBtn') settingsAddEntry();
 });
+
+async function postTranslationRequest(provider, payload) {
+    const response = await fetch(`/api/translate/${provider}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.success === false) {
+        const message = data.details ? `${data.error}: ${data.details}` : data.error;
+        throw new Error(message || `${provider} translation failed`);
+    }
+    if (typeof data.translation !== 'string' || !data.translation.trim()) {
+        throw new Error(`${provider} returned no translation`);
+    }
+    return data.translation;
+}
+
+async function translateWithLocalDictionary(text, sourceLang, targetLang) {
+    return postTranslationRequest('local', {
+        text: text.trim(),
+        source_lang: sourceLang,
+        target_lang: targetLang
+    });
+}
+
+async function translateWithDeepL(text, sourceLang, targetLang) {
+    return postTranslationRequest('deepl', {
+        text,
+        source_lang: sourceLang.toUpperCase(),
+        target_lang: targetLang.toUpperCase()
+    });
+}
+
+async function translateWithGoogle(text, sourceLang, targetLang) {
+    return postTranslationRequest('google', {
+        text,
+        source: sourceLang.toLowerCase(),
+        target: targetLang.toLowerCase()
+    });
+}
+
+async function translateWithBing(text, sourceLang, targetLang) {
+    return postTranslationRequest('bing', {
+        text,
+        from: sourceLang.toLowerCase(),
+        to: targetLang.toLowerCase()
+    });
+}
+
+async function translateWithVokabelheftAI(text, sourceLang, targetLang) {
+    return postTranslationRequest('mistral', {
+        text,
+        source_lang: sourceLang.toUpperCase(),
+        target_lang: targetLang.toUpperCase()
+    });
+}
+
+async function runProviderTranslate(provider, sourceLang) {
+    const isGerman = sourceLang === 'de';
+    const input = getInputForLanguage(sourceLang);
+    const target = getInputForLanguage(isGerman ? 'english' : 'german');
+    const text = input.value.trim();
+    if (!text) {
+        showToast(isGerman ? 'No German text' : 'No English text', 'warning');
+        return;
+    }
+
+    const providers = {
+        deepl: translateWithDeepL,
+        google: translateWithGoogle,
+        bing: translateWithBing,
+        mistral: translateWithVokabelheftAI
+    };
+    showLoading('Translating...');
+    try {
+        target.value = await providers[provider](text, sourceLang, isGerman ? 'en' : 'de');
+        showToast(`${provider} translation completed.`, 'success');
+    } catch (error) {
+        console.error(`${provider} translation error:`, error);
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function runInlineTranslation(sourceLang, checkVocabularyFirst) {
+    const isGerman = sourceLang === 'de';
+    const input = getInputForLanguage(sourceLang);
+    const target = getInputForLanguage(isGerman ? 'english' : 'german');
+    const text = input.value.trim();
+    if (!text) {
+        showToast(isGerman ? 'No German text' : 'No English text', 'warning');
+        return;
+    }
+
+    if (checkVocabularyFirst) {
+        const knownTranslation = lookupTranslateFromVocabulary(text, sourceLang);
+        if (knownTranslation) {
+            target.value = knownTranslation;
+            return;
+        }
+    }
+
+    showLoading('Searching local dictionary...');
+    try {
+        target.value = await translateWithLocalDictionary(text, sourceLang, isGerman ? 'en' : 'de');
+        showToast('Local dictionary search completed.', 'success');
+    } catch (error) {
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}

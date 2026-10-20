@@ -8,6 +8,7 @@ A modern web application for learning German and English vocabulary with audio t
 - **Audio Input**: Speak words/phrases for automatic transcription
 - **Manual Correction**: Fix transcription errors with an easy-to-use interface
 - **Translation Services**: Multiple options including:
+  - **Local dictionary** - Offline German ↔ English lookup using Ubuntu's installed `translate` package
   - **Vokabelheft A.I.** - AI-powered translation using Mistral
   - **DeepL** - High-quality translation API
   - **Google Translate** - Google's translation service
@@ -22,37 +23,36 @@ A modern web application for learning German and English vocabulary with audio t
 
 ## Quick Start
 
-### Option 1: Open HTML File Directly
-
-1. Simply open `index.html` in your web browser
-2. The app works entirely client-side (except for translation APIs)
-
-### Option 2: Run with Node.js Server
+### Run with Node.js Server
 
 1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Create a `.env` file based on `.env.example`:
+2. The inline Search buttons use the system `translate` package and its German-English dictionary. Install it on the same machine as the server if necessary:
+   ```bash
+   sudo apt install translate
+   ```
+   Package details: [Ubuntu `translate` source package](https://launchpad.net/ubuntu/resolute/+source/translate).
+
+3. Create a `.env` file based on `.env.example`:
    ```bash
    cp .env.example .env
    ```
 
-3. Add your API keys to `.env` (optional for basic functionality):
-   ```
-   DEEPL_API_KEY=your-deepl-api-key-here
-   GOOGLE_TRANSLATE_API_KEY=your-google-api-key-here
-   ```
+4. In `.env`, replace the placeholders only for the hosted services you plan to use. See [Translation Services](#translation-services) for each provider's requirements.
 
-4. Start the server:
+5. Start the server:
    ```bash
    npm start
    ```
 
-5. Open your browser to `http://localhost:3000`
+6. Open `http://localhost:3007` (or the port configured in `.env`).
 
-### Option 3: Development Mode
+Opening `index.html` directly does not enable the local dictionary or hosted API routes; the server is required for search and translation.
+
+### Development Mode
 
 For development with auto-restart:
 
@@ -79,11 +79,13 @@ npm run dev
 
 ### Translation
 
-1. Enter text in one of the language fields
-2. Select your preferred translation service (DeepL or Google)
-3. Click the translate button (↔️)
-4. The translation will appear in the other field
-5. Click "Add to Vocabulary" to save both words
+1. Enter a word in either language field.
+2. Click the adjacent **Search** button to look it up in the local `translate` dictionary, or click **Translate** to check your saved vocabulary first and then query the local dictionary.
+3. The result appears in the other field. The dictionary is offline and limited to entries installed with the package.
+4. Use a named provider button for hosted translation; it requires that service's credentials below.
+5. Click "Add to Vocabulary" to save both words.
+
+Use **⇄ German ↔ English** in the header to switch the language direction. Existing text moves with its language, and search, provider translation, vocabulary entry, and speech recognition follow the switched labels. Local dictionary searches use the `translate` package's whole-word (`-w`) mode for both directions. Speech-recognition final full stops are removed before the transcription is entered.
 
 ### Managing Vocabulary
 
@@ -95,7 +97,7 @@ npm run dev
 
 ### Dark Mode
 
-- **Toggle**: Click the moon/sun button (🌙/☀️) in the top left to switch between light and dark themes
+- **Toggle**: Click the moon/sun button (🌙/☀️) in the header to switch between light and dark themes
 - **Persistent**: Your preference is saved and remembered for future visits
 - **Comfortable**: Reduces eye strain in low-light conditions
 
@@ -114,6 +116,18 @@ npm run dev
 | `Ctrl + S` | Save Vocabulary |
 | `Escape` | Close modal |
 
+## Translation Services
+
+Hosted provider buttons make requests through the Node server, keeping credentials out of browser JavaScript. Set up only the services you intend to use:
+
+| Service | Required setup |
+| --- | --- |
+| Local dictionary | The Ubuntu/Debian `translate` package and its `de-en` dictionary must be installed on the server host. No API key is required. |
+| DeepL | A DeepL API key in `DEEPL_API_KEY`. The server currently uses the DeepL API Free endpoint. |
+| Google | A Google Cloud API key in `GOOGLE_TRANSLATE_API_KEY`, with Cloud Translation API enabled and billing configured. |
+| Bing | An Azure Translator key in `BING_API_KEY` and matching Azure region in `BING_REGION`. |
+| Mistral / Vokabelheft A.I. | A Mistral API key in `MISTRAL_API_KEY`; the model defaults to `mistral-small-latest` and can be set with `MISTRAL_MODEL`. |
+
 ## API Keys
 
 ### DeepL API Key
@@ -121,9 +135,9 @@ npm run dev
 1. Go to [DeepL API](https://www.deepl.com/pro-api)
 2. Sign up for a free account
 3. Create a new API key
-4. Add it to your `.env` file or enter it when prompted
+4. Add it to your `.env` file as `DEEPL_API_KEY`
 
-**Note**: The free DeepL API has limits. For more information, see [DeepL Pricing](https://www.deepl.com/pro-api#pricing).
+**Note**: The server currently uses DeepL API Free. For plan limits, see [DeepL Pricing](https://www.deepl.com/pro-api#pricing).
 
 ### Google Translate API Key
 
@@ -133,7 +147,7 @@ npm run dev
 4. Create an API key
 5. Add it to your `.env` file
 
-**Note**: Google Cloud Translation API v2 is deprecated. You may need to use v3 or set up authentication properly.
+**Note**: Google Cloud Translation requires billing and API access to be enabled for the project.
 
 ### Bing Translate API Key (Azure Cognitive Services)
 
@@ -141,9 +155,9 @@ npm run dev
 2. Create a new resource
 3. Search for "Translator" and create a Translator resource
 4. Go to Keys and Endpoint in your resource
-5. Copy one of the keys and add it to your `.env` file as `BING_API_KEY`
+5. Copy one of the keys and add it to `.env` as `BING_API_KEY`; set `BING_REGION` to the region shown for that Translator resource.
 
-**Note**: You'll need an Azure account. The free tier includes limited translations.
+**Note**: You'll need an Azure account and Translator resource; use that resource's region and credentials.
 
 ### Mistral API Key (for Vokabelheft A.I.)
 
@@ -222,10 +236,9 @@ recognition.lang = language === 'german' ? 'de-DE' : 'en-US';
 
 ### Translation Not Working
 
-- Ensure you have valid API keys
-- Check your internet connection
-- Verify that your API keys haven't exceeded their limits
-- Try the other translation service
+- Start the app with `npm start`; opening the HTML file directly does not provide backend routes.
+- For local search, verify `translate -l de-en -n -w Haus` works on the server host and that the dictionary is installed.
+- For hosted services, verify the matching environment variable, API access, region, billing, and quota. Provider failures are reported rather than silently substituted.
 
 ### Vocabulary Not Saving
 
