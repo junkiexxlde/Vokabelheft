@@ -128,6 +128,8 @@ Hosted provider buttons make requests through the Node server, keeping credentia
 | Bing | An Azure Translator key in `BING_API_KEY` and matching Azure region in `BING_REGION`. |
 | Mistral / Vokabelheft A.I. | A Mistral API key in `MISTRAL_API_KEY`; the model defaults to `mistral-small-latest` and can be set with `MISTRAL_MODEL`. |
 
+You can enter and save each service key separately in **Settings**. Keys saved there are stored in this browser's local storage and sent to the server only when calling the matching provider. They are not encrypted by the browser; use server-side environment variables instead on shared devices. A key saved in Settings takes precedence over that service's server environment key for requests from that browser.
+
 ## API Keys
 
 ### DeepL API Key

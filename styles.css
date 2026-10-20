@@ -160,6 +160,39 @@ body {
     padding: 0 4px;
 }
 
+.api-key-settings {
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.api-key-settings h4,
+.api-key-settings p {
+    margin: 0 0 10px;
+}
+
+.api-key-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(180px, 2fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.api-key-row input {
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+    .api-key-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }

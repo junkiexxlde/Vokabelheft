@@ -101,7 +101,7 @@ app.post('/api/translate/local', (req, res) => {
 app.post('/api/translate/deepl', async (req, res) => {
     try {
         const { text, source_lang, target_lang } = req.body;
-        const apiKey = process.env.DEEPL_API_KEY || req.body.api_key;
+        const apiKey = req.body.api_key || process.env.DEEPL_API_KEY;
         
         if (!apiKey) {
             return res.status(400).json({ 
@@ -151,7 +151,7 @@ app.post('/api/translate/deepl', async (req, res) => {
 app.post('/api/translate/google', async (req, res) => {
     try {
         const { text, source, target } = req.body;
-        const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || req.body.api_key;
+        const apiKey = req.body.api_key || process.env.GOOGLE_TRANSLATE_API_KEY;
         
         if (!apiKey) {
             return res.status(400).json({ 
@@ -256,7 +256,7 @@ app.post('/api/speech-to-text', async (req, res) => {
 app.post('/api/translate/bing', async (req, res) => {
     try {
         const { text, from, to } = req.body;
-        const apiKey = process.env.BING_API_KEY || req.body.api_key;
+        const apiKey = req.body.api_key || process.env.BING_API_KEY;
         
         if (!apiKey) {
             return res.status(400).json({ 
@@ -312,7 +312,7 @@ app.post('/api/translate/bing', async (req, res) => {
 app.post('/api/translate/mistral', async (req, res) => {
     try {
         const { text, source_lang, target_lang } = req.body;
-        const apiKey = process.env.MISTRAL_API_KEY || req.body.api_key;
+        const apiKey = req.body.api_key || process.env.MISTRAL_API_KEY;
         
         if (!apiKey) {
             return res.status(400).json({ 
@@ -421,7 +421,7 @@ const server = app.listen(PORT, () => {
     
     if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
         console.log('ℹ️  Info: Google Translate API key not found.');
-        console.log('   Google translation will use DeepL as fallback.');
+        console.log('   Enter a Google API key in the app Settings to enable Google translation.');
     }
 });
 

@@ -9,6 +9,12 @@ const AppState = {
     audioChunks: [],
     isProcessing: false,
     languagesSwapped: false,
+    apiKeys: {
+        deepl: '',
+        google: '',
+        bing: '',
+        mistral: ''
+    },
     darkMode: false,
     language: 'en' // 'en' for English, 'de' for German
 };
@@ -277,6 +283,7 @@ function updateLanguageDirectionUI() {
 // ===== Initialization =====
 function init() {
     setupEventListeners();
+    loadApiKeys();
     loadPreferences();
     renderVocabulary();
     checkSpeechRecognitionSupport();
@@ -1160,6 +1167,10 @@ window.translateFromVocabularyOrGoogle = translateFromVocabularyOrGoogle;
 function openSettingsModal() {
     const modal = document.getElementById('settingsModal');
     if (!modal) return;
+    Object.entries(apiKeyInputIds).forEach(([provider, inputId]) => {
+        const input = document.getElementById(inputId);
+        if (input) input.value = AppState.apiKeys[provider];
+    });
     modal.style.display = 'flex';
     renderSettingsList();
 }
@@ -1168,6 +1179,52 @@ function closeSettingsModal() {
     const modal = document.getElementById('settingsModal');
     if (!modal) return;
     modal.style.display = 'none';
+}
+
+const apiKeyStorageKey = 'vokabelheft_api_keys';
+const apiKeyInputIds = {
+    deepl: 'deeplApiKeyInput',
+    google: 'googleApiKeyInput',
+    bing: 'bingApiKeyInput',
+    mistral: 'mistralApiKeyInput'
+};
+
+function loadApiKeys() {
+    try {
+        const savedKeys = localStorage.getItem(apiKeyStorageKey);
+        if (!savedKeys) return;
+
+        const parsedKeys = JSON.parse(savedKeys);
+        Object.keys(apiKeyInputIds).forEach(provider => {
+            const key = parsedKeys[provider];
+            if (typeof key === 'string') AppState.apiKeys[provider] = key;
+        });
+    } catch (error) {
+        console.error('Could not load saved API keys:', error);
+        showToast('Saved API keys could not be loaded from this browser.', 'error');
+    }
+}
+
+function saveApiKey(provider) {
+    const inputId = apiKeyInputIds[provider];
+    const input = inputId && document.getElementById(inputId);
+    if (!input) {
+        showToast('Unknown translation service.', 'error');
+        return;
+    }
+
+    const key = input.value.trim();
+    const updatedKeys = { ...AppState.apiKeys, [provider]: key };
+    try {
+        localStorage.setItem(apiKeyStorageKey, JSON.stringify(updatedKeys));
+    } catch (error) {
+        console.error('Could not save API key:', error);
+        showToast('API key could not be saved in this browser.', 'error');
+        return;
+    }
+
+    AppState.apiKeys[provider] = key;
+    showToast(`${provider} API key saved in this browser.`, 'success');
 }
 
 function renderSettingsList() {
@@ -1231,12 +1288,19 @@ function settingsAddEntry() {
 
 // Wire settings modal buttons (if present)
 document.addEventListener('click', (e) => {
-    if (e.target && e.target.id === 'settingsBtn') openSettingsModal();
-    if (e.target && e.target.id === 'settingsCloseBtn') closeSettingsModal();
-    if (e.target && e.target.id === 'settingsAddBtn') settingsAddEntry();
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+    if (target.closest('#settingsBtn')) openSettingsModal();
+    if (target.closest('#settingsCloseBtn')) closeSettingsModal();
+    if (target.closest('#settingsAddBtn')) settingsAddEntry();
+    const saveKeyButton = target.closest('[data-save-api-key]');
+    if (saveKeyButton) saveApiKey(saveKeyButton.dataset.saveApiKey);
 });
 
 async function postTranslationRequest(provider, payload) {
+    if (provider !== 'local' && AppState.apiKeys[provider]) {
+        payload.api_key = AppState.apiKeys[provider];
+    }
     const response = await fetch(`/api/translate/${provider}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

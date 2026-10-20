@@ -65,11 +65,36 @@
                     <h3>Vocabulary Settings</h3>
                     <p>Edit, delete, or manually add vocabulary entries.</p>
 
+                    <section class="api-key-settings" aria-labelledby="apiKeySettingsTitle">
+                        <h4 id="apiKeySettingsTitle">Translation API keys</h4>
+                        <p>Keys are saved in this browser and sent only to the selected service.</p>
+                        <div class="api-key-row">
+                            <label for="deeplApiKeyInput">DeepL API key</label>
+                            <input id="deeplApiKeyInput" type="password" autocomplete="new-password">
+                            <button class="btn" type="button" data-save-api-key="deepl">Save DeepL key</button>
+                        </div>
+                        <div class="api-key-row">
+                            <label for="googleApiKeyInput">Google Translate API key</label>
+                            <input id="googleApiKeyInput" type="password" autocomplete="new-password">
+                            <button class="btn" type="button" data-save-api-key="google">Save Google key</button>
+                        </div>
+                        <div class="api-key-row">
+                            <label for="bingApiKeyInput">Bing Translator API key</label>
+                            <input id="bingApiKeyInput" type="password" autocomplete="new-password">
+                            <button class="btn" type="button" data-save-api-key="bing">Save Bing key</button>
+                        </div>
+                        <div class="api-key-row">
+                            <label for="mistralApiKeyInput">Mistral API key</label>
+                            <input id="mistralApiKeyInput" type="password" autocomplete="new-password">
+                            <button class="btn" type="button" data-save-api-key="mistral">Save Mistral key</button>
+                        </div>
+                    </section>
+
                     <div style="margin-bottom:12px;display:flex;gap:8px;">
                         <input id="settingsGermanInput" placeholder="German" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
                         <input id="settingsEnglishInput" placeholder="English" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
                         <button id="settingsAddBtn" class="btn">Add</button>
-                        <button id="settingsCloseBtn" class="btn">Close</button>
+                        <button id="settingsCloseBtn" class="btn" type="button">Close</button>
                     </div>
 
                     <table style="width:100%;border-collapse:collapse;">
