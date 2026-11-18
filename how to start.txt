@@ -1,0 +1,20 @@
+The Docker setup requires sudo privileges. Since you mentioned you used sudo docker compose up --build -d with your password, here's what I need you to do:
+
+Please run this command in your terminal:
+
+cd /home/larsj/Nextcloud/_Lars/_2026/Projekte/Vokabelheft && sudo docker compose up --build -d
+This will:
+
+Navigate to your Vokabelheft project directory
+Build the Docker image (using Node.js 22 from the existing Dockerfile)
+Start the container in detached mode
+To check if it's running:
+
+sudo docker compose ps
+To view logs:
+
+sudo docker compose logs -f
+To stop:
+
+sudo docker compose down
+Your existing compose.yaml and Dockerfile are already properly configured - they just need sudo to run.

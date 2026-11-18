@@ -1,0 +1,14 @@
+services:
+  vokabelheft:
+    build: .
+    ports:
+      - "${PORT:-3007}:${PORT:-3007}"
+    environment:
+      PORT: "${PORT:-3007}"
+      DEEPL_API_KEY: "${DEEPL_API_KEY:-}"
+      GOOGLE_TRANSLATE_API_KEY: "${GOOGLE_TRANSLATE_API_KEY:-}"
+      BING_API_KEY: "${BING_API_KEY:-}"
+      BING_REGION: "${BING_REGION:-global}"
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
+      MISTRAL_MODEL: "${MISTRAL_MODEL:-mistral-small-latest}"
+    restart: unless-stopped

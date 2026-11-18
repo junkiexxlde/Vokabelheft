@@ -1,141 +1,268 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vokabelheft - Vocabulary Notebook</title>
+    <meta name="theme-color" content="#f3f6fb">
+    <title>Vokabelheft</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="app-title">Vokabelheft</div>
-            <div class="header-controls">
-                <button id="swapLanguagesBtn" class="btn" type="button" aria-label="Switch German and English">⇄ German ↔ English</button>
-                <button id="darkModeBtn" class="btn btn-primary" aria-label="Toggle dark mode" aria-pressed="false">🌙 Dark mode</button>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Hauptnavigation" data-i18n-aria="navLabel">
+            <a class="brand-lockup" href="#" aria-label="Vokabelheft Startseite" data-i18n-aria="brandLabel">
+                <span class="brand-mark" aria-hidden="true">V</span>
+                <span>Vokabelheft<small data-i18n="brandSubtitle">Lernbereich</small></span>
+            </a>
+
+            <div class="sidebar-section-label" data-i18n="workspaceLabel">Arbeitsbereich</div>
+            <nav class="nav-list">
+                <button class="nav-item active" type="button" data-page-link="vocabulary" aria-current="page">
+                    <span class="nav-icon" aria-hidden="true">▤</span>
+                    <span data-i18n="vocabularyNav">Vokabeln</span>
+                    <span class="nav-count" id="sidebarVocabCount">0</span>
+                </button>
+                <button class="nav-item" type="button" data-page-link="settings">
+                    <span class="nav-icon" aria-hidden="true">⚙</span>
+                    <span data-i18n="settingsNav">Einstellungen</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-section-label" data-i18n="preferencesLabel">Einstellungen</div>
+                <button id="darkModeBtn" class="preference-button" type="button" aria-label="Darstellung umschalten" aria-pressed="false" data-i18n-aria="toggleTheme">
+                    <span aria-hidden="true">◐</span><span data-i18n="darkMode">Dunkles Design</span>
+                </button>
+                <button id="languageBtn" class="preference-button language-toggle" type="button" aria-label="Sprache wechseln" data-i18n-aria="toggleLanguage">
+                    <span aria-hidden="true">文</span><span>English</span>
+                </button>
+                <p class="sidebar-footnote" data-i18n="sidebarFootnote">Ein ruhiger Ort, um deine Sprachkenntnisse zu erweitern.</p>
             </div>
-        </header>
+        </aside>
 
-        <main>
-            <section class="input-section" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
-                <div style="flex:1;min-width:280px;">
-                    <h2 id="leftLanguageHeading">German</h2>
-                    <div style="display:flex;gap:8px;align-items:flex-start;">
-                        <textarea id="germanInput" placeholder="Enter German word/phrase..." rows="2" style="flex:1;"></textarea>
-                        <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-                            <button id="translateDeEnGoogleInline" class="btn">🌐 Translate</button>
-                            <button id="searchDeInline" class="btn">🔎 Search</button>
-                        </div>
-                    </div>
-                    <div id="germanStatus" class="input-status" style="margin-top:6px;font-size:12px;color:#6b7280"></div>
-                    <div class="button-group">
-                        <button id="recordGermanBtn">🎤 Speak</button>
-                        <button id="stopGermanBtn" style="display:none">■ Stop</button>
-                        <button id="translateDeEnDeepL">Translate with DeepL</button>
-                        <button id="translateDeEnGoogle">Translate with Google</button>
-                        <button id="translateDeEnBing">Translate with Bing</button>
-                        <button id="translateDeEnMistral">Translate with Mistral</button>
-                    </div>
+        <div class="main-shell">
+            <header class="topbar">
+                <div class="topbar-context">
+                    <span class="eyebrow" data-i18n="learningSpace">LERNBEREICH</span>
+                    <span class="topbar-title" id="currentPageTitle">Vokabeln</span>
                 </div>
-
-                <div style="flex:1;min-width:280px;">
-                    <h2 id="rightLanguageHeading">English</h2>
-                    <div style="display:flex;gap:8px;align-items:flex-start;">
-                        <textarea id="englishInput" placeholder="Enter English word/phrase..." rows="2" style="flex:1;"></textarea>
-                        <div class="inline-translate" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-                            <button id="translateEnDeGoogleInline" class="btn">🌐 Translate</button>
-                            <button id="searchEnInline" class="btn">🔎 Search</button>
-                        </div>
-                    </div>
-                    <div id="englishStatus" class="input-status" style="margin-top:6px;font-size:12px;color:#6b7280"></div>
-                    <div class="button-group">
-                        <button id="recordEnglishBtn">🎤 Speak</button>
-                        <button id="stopEnglishBtn" style="display:none">■ Stop</button>
-                        <button id="translateEnDeDeepL">Translate with DeepL</button>
-                        <button id="translateEnDeGoogle">Translate with Google</button>
-                        <button id="translateEnDeBing">Translate with Bing</button>
-                        <button id="translateEnDeMistral">Translate with Mistral</button>
-                    </div>
+                <div class="topbar-actions">
+                    <button id="saveBtn" class="btn btn-secondary" type="button"><span aria-hidden="true">↓</span> Exportieren</button>
+                    <button id="loadBtn" class="btn btn-secondary" type="button"><span aria-hidden="true">↑</span> Importieren</button>
+                    <input type="file" id="fileInput" accept=".json" hidden>
                 </div>
-            </section>
+            </header>
 
-            <!-- Settings Modal -->
-            <div id="settingsModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
-                <div class="modal-content" style="background:white;padding:20px;border-radius:8px;max-width:900px;width:95%;max-height:80vh;overflow:auto;">
-                    <h3>Vocabulary Settings</h3>
-                    <p>Edit, delete, or manually add vocabulary entries.</p>
+            <main class="page-content">
+                <section class="page-view" id="vocabularyPage" data-page="vocabulary">
+                    <div class="page-heading">
+                        <div>
+                            <p class="eyebrow" data-i18n="personalDictionary">DEIN PERSÖNLICHES WÖRTERBUCH</p>
+                            <h1 tabindex="-1" data-i18n="buildVocabulary">Baue deinen Wortschatz auf</h1>
+                            <p class="page-intro" data-i18n="workspaceIntro">Schlage Wörter nach, füge sie deiner Sammlung hinzu und lerne in deinem Tempo weiter.</p>
+                        </div>
+                        <button id="swapLanguagesBtn" class="btn btn-secondary swap-button" type="button" aria-label="Deutsch und Englisch tauschen" aria-pressed="false">
+                            <span aria-hidden="true">⇄</span> Deutsch ↔ Englisch
+                        </button>
+                    </div>
 
-                    <section class="api-key-settings" aria-labelledby="apiKeySettingsTitle">
-                        <h4 id="apiKeySettingsTitle">Translation API keys</h4>
-                        <p>Keys are saved in this browser and sent only to the selected service.</p>
-                        <div class="api-key-row">
-                            <label for="deeplApiKeyInput">DeepL API key</label>
-                            <input id="deeplApiKeyInput" type="password" autocomplete="new-password">
-                            <button class="btn" type="button" data-save-api-key="deepl">Save DeepL key</button>
+                    <section class="translator-card" aria-label="Wortübersetzer" data-i18n-aria="translatorLabel">
+                        <div class="translator-heading">
+                            <div>
+                                <h2 data-i18n="quickLookup">Schnellsuche</h2>
+                                <p data-i18n="quickLookupIntro">Durchsuche das Offline-Wörterbuch oder übersetze mit einem Anbieter.</p>
+                            </div>
+                            <span class="offline-badge"><span aria-hidden="true">●</span> <span data-i18n="offlineDictionary">Offline-Wörterbuch</span></span>
                         </div>
-                        <div class="api-key-row">
-                            <label for="googleApiKeyInput">Google Translate API key</label>
-                            <input id="googleApiKeyInput" type="password" autocomplete="new-password">
-                            <button class="btn" type="button" data-save-api-key="google">Save Google key</button>
+
+                        <div class="input-section">
+                            <div class="language-panel">
+                                <div class="language-heading">
+                                    <span id="leftLanguageDot" class="language-dot german-dot" aria-hidden="true"></span>
+                                    <h3 id="leftLanguageHeading">German</h3>
+                                </div>
+                                <textarea id="germanInput" placeholder="Enter a word or phrase…" rows="3" aria-label="German text"></textarea>
+                                <div id="germanStatus" class="input-status" aria-live="polite"></div>
+                                <div class="field-actions">
+                                    <button id="recordGermanBtn" class="btn btn-secondary" type="button"><span aria-hidden="true">🎙</span> <span data-i18n="speak">Sprechen</span></button>
+                                    <button id="stopGermanBtn" class="btn btn-secondary hidden" type="button">■ <span data-i18n="stop">Stopp</span></button>
+                                    <button id="searchDeInline" class="btn btn-secondary" type="button"><span aria-hidden="true">⌕</span> <span data-i18n="search">Suchen</span></button>
+                                    <button id="translateDeEnGoogleInline" class="btn btn-primary" type="button"><span aria-hidden="true">↗</span> <span data-i18n="translate">Übersetzen</span></button>
+                                </div>
+                                <div class="provider-actions" aria-label="Mit einem Anbieter übersetzen" data-i18n-aria="providerLabel">
+                                    <span data-i18n="useService">Anbieter verwenden</span>
+                                    <button id="translateDeEnDeepL" class="service-button" type="button">DeepL</button>
+                                    <button id="translateDeEnGoogle" class="service-button" type="button">Google</button>
+                                    <button id="translateDeEnBing" class="service-button" type="button">Bing</button>
+                                    <button id="translateDeEnMistral" class="service-button" type="button">Mistral</button>
+                                </div>
+                            </div>
+
+                            <div class="language-panel">
+                                <div class="language-heading">
+                                    <span id="rightLanguageDot" class="language-dot english-dot" aria-hidden="true"></span>
+                                    <h3 id="rightLanguageHeading">English</h3>
+                                </div>
+                                <textarea id="englishInput" placeholder="Enter a word or phrase…" rows="3" aria-label="English text"></textarea>
+                                <div id="englishStatus" class="input-status" aria-live="polite"></div>
+                                <div class="field-actions">
+                                    <button id="recordEnglishBtn" class="btn btn-secondary" type="button"><span aria-hidden="true">🎙</span> <span data-i18n="speak">Sprechen</span></button>
+                                    <button id="stopEnglishBtn" class="btn btn-secondary hidden" type="button">■ <span data-i18n="stop">Stopp</span></button>
+                                    <button id="searchEnInline" class="btn btn-secondary" type="button"><span aria-hidden="true">⌕</span> <span data-i18n="search">Suchen</span></button>
+                                    <button id="translateEnDeGoogleInline" class="btn btn-primary" type="button"><span aria-hidden="true">↗</span> <span data-i18n="translate">Übersetzen</span></button>
+                                </div>
+                                <div class="provider-actions" aria-label="Mit einem Anbieter übersetzen" data-i18n-aria="providerLabel">
+                                    <span data-i18n="useService">Anbieter verwenden</span>
+                                    <button id="translateEnDeDeepL" class="service-button" type="button">DeepL</button>
+                                    <button id="translateEnDeGoogle" class="service-button" type="button">Google</button>
+                                    <button id="translateEnDeBing" class="service-button" type="button">Bing</button>
+                                    <button id="translateEnDeMistral" class="service-button" type="button">Mistral</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="api-key-row">
-                            <label for="bingApiKeyInput">Bing Translator API key</label>
-                            <input id="bingApiKeyInput" type="password" autocomplete="new-password">
-                            <button class="btn" type="button" data-save-api-key="bing">Save Bing key</button>
-                        </div>
-                        <div class="api-key-row">
-                            <label for="mistralApiKeyInput">Mistral API key</label>
-                            <input id="mistralApiKeyInput" type="password" autocomplete="new-password">
-                            <button class="btn" type="button" data-save-api-key="mistral">Save Mistral key</button>
+
+                        <div class="translator-footer">
+                            <p data-i18n="wholeWordHint">Die Suche findet exakte Wörter im lokalen Wörterbuch.</p>
+                            <div class="primary-actions">
+                                <button id="addVocabBtn" class="btn btn-primary" type="button"><span aria-hidden="true">＋</span> <span data-i18n="addVocab">Zu Vokabeln hinzufügen</span></button>
+                                <button id="clearBtn" class="btn btn-quiet" type="button"><span data-i18n="clearInputs">Eingaben leeren</span></button>
+                            </div>
                         </div>
                     </section>
 
-                    <div style="margin-bottom:12px;display:flex;gap:8px;">
-                        <input id="settingsGermanInput" placeholder="German" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
-                        <input id="settingsEnglishInput" placeholder="English" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />
-                        <button id="settingsAddBtn" class="btn">Add</button>
-                        <button id="settingsCloseBtn" class="btn" type="button">Close</button>
+                    <section class="vocab-list card" aria-labelledby="vocabHeading">
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow" data-i18n="yourCollection">DEINE SAMMLUNG</p>
+                                <h2 id="vocabHeading"><span data-i18n="vocabList">Vokabelliste</span> <span id="vocabCount" class="count-label">0 Einträge</span></h2>
+                            </div>
+                            <button class="btn btn-quiet" type="button" data-page-link="settings"><span data-i18n="manageEntries">Einträge verwalten</span> <span aria-hidden="true">→</span></button>
+                        </div>
+                        <div class="table-scroll">
+                            <table id="vocabTable">
+                                <thead>
+                                    <tr><th data-i18n="german">Deutsch</th><th data-i18n="english">Englisch</th><th data-i18n="actions">Aktionen</th></tr>
+                                </thead>
+                                <tbody id="vocabularyTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="page-view" id="settingsPage" data-page="settings" hidden>
+                    <div class="page-heading">
+                        <div>
+                            <p class="eyebrow" data-i18n="personalize">ARBEITSBEREICH ANPASSEN</p>
+                            <h1 tabindex="-1" data-i18n="settingsNav">Einstellungen</h1>
+                            <p class="page-intro" data-i18n="settingsIntro">Verwalte Übersetzungsdienste und bearbeite deine gespeicherten Vokabeln.</p>
+                        </div>
                     </div>
 
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;">German</th><th style="padding:8px;border:1px solid #e5e7eb;">English</th><th style="padding:8px;border:1px solid #e5e7eb;">Actions</th></tr>
-                        </thead>
-                        <tbody id="settingsVocabBody"></tbody>
-                    </table>
-                </div>
-            </div>
+                    <section class="card settings-card" aria-labelledby="apiKeySettingsTitle">
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow" data-i18n="translationServices">ÜBERSETZUNGSDIENSTE</p>
+                                <h2 id="apiKeySettingsTitle" data-i18n="apiKeys">API-Schlüssel</h2>
+                                <p class="section-intro" data-i18n="apiKeyIntro">Schlüssel werden in diesem Browser gespeichert und nur an den ausgewählten Dienst gesendet.</p>
+                            </div>
+                            <span class="settings-icon" aria-hidden="true">⌘</span>
+                        </div>
+                        <div class="api-key-grid">
+                            <div class="api-key-settings">
+                                <label for="deeplApiKeyInput" data-i18n="deeplKey">DeepL-API-Schlüssel</label>
+                                <p data-i18n="deeplDesc">Gib deinen DeepL-Schlüssel ein, um DeepL-Übersetzungen zu aktivieren.</p>
+                                <div class="key-input-row">
+                                    <input id="deeplApiKeyInput" type="password" autocomplete="new-password" placeholder="DeepL-API-Schlüssel eingeben" data-i18n-placeholder="deeplPlaceholder">
+                                    <button class="btn btn-primary" type="button" data-save-api-key="deepl" data-i18n="saveKey">Schlüssel speichern</button>
+                                </div>
+                            </div>
+                            <div class="api-key-settings">
+                                <label for="googleApiKeyInput" data-i18n="googleKey">Google-Übersetzungs-API-Schlüssel</label>
+                                <p data-i18n="googleDesc">Verbinde Google Cloud Translation für Online-Übersetzungen.</p>
+                                <div class="key-input-row">
+                                    <input id="googleApiKeyInput" type="password" autocomplete="new-password" placeholder="Google-API-Schlüssel eingeben" data-i18n-placeholder="googlePlaceholder">
+                                    <button class="btn btn-primary" type="button" data-save-api-key="google" data-i18n="saveKey">Schlüssel speichern</button>
+                                </div>
+                            </div>
+                            <div class="api-key-settings">
+                                <label for="bingApiKeyInput" data-i18n="bingKey">Bing-Übersetzungs-API-Schlüssel</label>
+                                <p data-i18n="bingDesc">Verwende einen Azure-Translator-Schlüssel. Lege die Region in der Serverumgebung fest.</p>
+                                <div class="key-input-row">
+                                    <input id="bingApiKeyInput" type="password" autocomplete="new-password" placeholder="Bing-API-Schlüssel eingeben" data-i18n-placeholder="bingPlaceholder">
+                                    <button class="btn btn-primary" type="button" data-save-api-key="bing" data-i18n="saveKey">Schlüssel speichern</button>
+                                </div>
+                            </div>
+                            <div class="api-key-settings">
+                                <label for="mistralApiKeyInput" data-i18n="mistralKey">Mistral-API-Schlüssel</label>
+                                <p data-i18n="mistralDesc">Aktiviere KI-gestützte Übersetzungen mit Mistral.</p>
+                                <div class="key-input-row">
+                                    <input id="mistralApiKeyInput" type="password" autocomplete="new-password" placeholder="Mistral-API-Schlüssel eingeben" data-i18n-placeholder="mistralPlaceholder">
+                                    <button class="btn btn-primary" type="button" data-save-api-key="mistral" data-i18n="saveKey">Schlüssel speichern</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-            <section class="actions">
-                <button id="addVocabBtn" class="btn btn-primary">Add Vocabulary</button>
-                <button id="clearBtn" class="btn">Clear Inputs</button>
-                <button id="settingsBtn" class="btn">Settings</button>
-                <button id="saveBtn" class="btn">Export as JSON</button>
-                <input type="file" id="fileInput" accept=".json" style="display:none">
-                <button id="loadBtn" class="btn" onclick="document.getElementById('fileInput').click()">Import JSON</button>
-            </section>
+                    <section class="card settings-card defaults-card" aria-labelledby="defaultsTitle">
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow" data-i18n="defaultsEyebrow">DARSTELLUNG & SPRACHE</p>
+                                <h2 id="defaultsTitle" data-i18n="defaultsTitle">Standardeinstellungen</h2>
+                                <p class="section-intro" data-i18n="defaultsIntro">Diese Auswahl wird beim nächsten Öffnen der App verwendet.</p>
+                            </div>
+                            <span class="settings-icon" aria-hidden="true">⚙</span>
+                        </div>
+                        <div class="defaults-grid">
+                            <div class="default-field">
+                                <label for="defaultModeSelect" data-i18n="defaultMode">Standarddarstellung</label>
+                                <select id="defaultModeSelect">
+                                    <option value="light" data-i18n="lightMode">Hell</option>
+                                    <option value="dark" data-i18n="darkModeOption">Dunkel</option>
+                                </select>
+                            </div>
+                            <div class="default-field">
+                                <label for="defaultLanguageSelect" data-i18n="defaultLanguage">Standardsprache</label>
+                                <select id="defaultLanguageSelect">
+                                    <option value="de">Deutsch</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
 
-            <section class="vocab-list">
-                <h2>Vocabulary List <span id="vocabCount" style="font-weight:normal;font-size:14px;margin-left:8px;color:#6b7280"></span></h2>
-                <table id="vocabTable">
-                    <thead>
-                        <tr>
-                            <th>German</th>
-                            <th>English</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="vocabularyTableBody"></tbody>
-                </table>
-            </section>
-        </main>
-        <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
-            <div class="loading-spinner" aria-hidden="true"></div>
-            <span id="loadingText">Processing...</span>
+                    <section class="card settings-card" aria-labelledby="manageVocabularyTitle">
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow" data-i18n="yourCollection">DEINE SAMMLUNG</p>
+                                <h2 id="manageVocabularyTitle" data-i18n="manageVocab">Vokabeln verwalten</h2>
+                                <p class="section-intro" data-i18n="manageVocabIntro">Füge Wörter hinzu oder bearbeite und lösche vorhandene Einträge.</p>
+                            </div>
+                            <span class="settings-icon" aria-hidden="true">Aa</span>
+                        </div>
+                        <div class="manual-entry">
+                            <label class="sr-only" for="settingsGermanInput" data-i18n="germanWord">Deutsches Wort</label>
+                            <input id="settingsGermanInput" placeholder="Deutsch" data-i18n-placeholder="german">
+                            <label class="sr-only" for="settingsEnglishInput" data-i18n="englishWord">Englisches Wort</label>
+                            <input id="settingsEnglishInput" placeholder="Englisch" data-i18n-placeholder="english">
+                            <button id="settingsAddBtn" class="btn btn-primary" type="button" data-i18n="addEntry">Eintrag hinzufügen</button>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="settings-table">
+                                <thead><tr><th data-i18n="german">Deutsch</th><th data-i18n="english">Englisch</th><th data-i18n="actions">Aktionen</th></tr></thead>
+                                <tbody id="settingsVocabBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+            </main>
         </div>
-        <div id="toastContainer" class="toast-container" aria-live="polite"></div>
     </div>
 
+    <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <span id="loadingText">Processing...</span>
+    </div>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
     <script src="app.js"></script>
 </body>
 </html>

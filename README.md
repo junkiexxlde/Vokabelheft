@@ -8,7 +8,7 @@ A modern web application for learning German and English vocabulary with audio t
 - **Audio Input**: Speak words/phrases for automatic transcription
 - **Manual Correction**: Fix transcription errors with an easy-to-use interface
 - **Translation Services**: Multiple options including:
-  - **Local dictionary** - Offline German ↔ English lookup using Ubuntu's installed `translate` package
+  - **Local dictionary** - Offline German ↔ English lookup using Debian's `translate` package (included in the Docker image)
   - **Vokabelheft A.I.** - AI-powered translation using Mistral
   - **DeepL** - High-quality translation API
   - **Google Translate** - Google's translation service
@@ -18,10 +18,27 @@ A modern web application for learning German and English vocabulary with audio t
 - **Export/Import**: Save vocabulary as JSON files
 - **Responsive Design**: Works on desktop and mobile devices
 - **Keyboard Shortcuts**: Speed up your workflow
-- **Dark Mode**: Toggle between light and dark themes
-- **Multi-Language UI**: Switch between English and German interface
+- **Light and dark themes**: Choose a comfortable appearance and set its default
+- **Bilingual interface**: Switch the application between German and English
 
 ## Quick Start
+
+### Run with Docker
+
+Docker runs the app and its Debian-based local dictionary dependency in a container, so the host does not need Node.js or the `translate` package.
+
+1. Install Docker Engine and the Docker Compose plugin.
+2. Optionally create a `.env` file from `.env.example` and add environment API keys for hosted providers. API keys can also be entered in the app's Settings.
+3. Build and start the app:
+   ```bash
+   docker compose up --build -d
+   ```
+4. Open `http://localhost:3007`. To stop the app, run:
+   ```bash
+   docker compose down
+   ```
+
+The container installs Debian's `translate` package and uses it for offline German-English whole-word searches. To change the port, set `PORT` in `.env`; the published host port will match it.
 
 ### Run with Node.js Server
 
@@ -30,7 +47,7 @@ A modern web application for learning German and English vocabulary with audio t
    npm install
    ```
 
-2. The inline Search buttons use the system `translate` package and its German-English dictionary. Install it on the same machine as the server if necessary:
+2. The inline Search buttons use the system `translate` package and its German-English dictionary. On Debian or Ubuntu, install it on the same machine as the server if necessary:
    ```bash
    sudo apt install translate
    ```
@@ -85,7 +102,7 @@ npm run dev
 4. Use a named provider button for hosted translation; it requires that service's credentials below.
 5. Click "Add to Vocabulary" to save both words.
 
-Use **⇄ German ↔ English** in the header to switch the language direction. Existing text moves with its language, and search, provider translation, vocabulary entry, and speech recognition follow the switched labels. Local dictionary searches use the `translate` package's whole-word (`-w`) mode for both directions. Speech-recognition final full stops are removed before the transcription is entered.
+Use **⇄ German ↔ English** in the Vocabulary workspace heading to switch the language direction. Existing text moves with its language, and search, provider translation, vocabulary entry, and speech recognition follow the switched labels. Local dictionary searches use the `translate` package's whole-word (`-w`) mode for both directions. Speech-recognition final full stops are removed before the transcription is entered.
 
 ### Managing Vocabulary
 
@@ -93,19 +110,21 @@ Use **⇄ German ↔ English** in the header to switch the language direction. E
 - **Delete**: Click the delete button (🗑️) to remove an entry
 - **Save**: Click "Save Vocabulary" to export as JSON file
 - **Load**: Click "Load Vocabulary" to import from JSON file
-- **Clear**: Click "Clear All" to remove all entries (with confirmation)
+- **Clear**: Click "Clear inputs" to reset the translation fields
 
 ### Dark Mode
 
-- **Toggle**: Click the moon/sun button (🌙/☀️) in the header to switch between light and dark themes
-- **Persistent**: Your preference is saved and remembered for future visits
+- **Toggle**: Click the moon/sun button in the left sidebar to switch between light and dark themes
+- **Default**: Choose the appearance used at startup in Settings → Default preferences
 - **Comfortable**: Reduces eye strain in low-light conditions
 
-### Language Toggle
+### Navigation and Settings
 
-- **Toggle**: Click the globe button (🌐) in the top left to switch between English and German interface
-- **Full Translation**: All buttons, labels, and messages change to the selected language
-- **Persistent**: Your language preference is saved automatically
+- Use the left sidebar to switch between the Vocabulary workspace and the dedicated Settings page.
+- Settings includes provider API keys and tools to add, edit, and delete vocabulary entries.
+- The **Default preferences** section lets you choose the appearance and interface language used when the app opens. The initial defaults are light mode and German.
+- Use the language control in the sidebar to switch between German and English immediately.
+- On smaller screens, navigation and preferences adapt to a compact top bar.
 
 ## Keyboard Shortcuts
 
@@ -122,7 +141,7 @@ Hosted provider buttons make requests through the Node server, keeping credentia
 
 | Service | Required setup |
 | --- | --- |
-| Local dictionary | The Ubuntu/Debian `translate` package and its `de-en` dictionary must be installed on the server host. No API key is required. |
+| Local dictionary | The Docker image includes Debian's `translate` package and its `de-en` dictionary. For a native install, install the package on the server host. No API key is required. |
 | DeepL | A DeepL API key in `DEEPL_API_KEY`. The server currently uses the DeepL API Free endpoint. |
 | Google | A Google Cloud API key in `GOOGLE_TRANSLATE_API_KEY`, with Cloud Translation API enabled and billing configured. |
 | Bing | An Azure Translator key in `BING_API_KEY` and matching Azure region in `BING_REGION`. |
@@ -239,7 +258,7 @@ recognition.lang = language === 'german' ? 'de-DE' : 'en-US';
 ### Translation Not Working
 
 - Start the app with `npm start`; opening the HTML file directly does not provide backend routes.
-- For local search, verify `translate -l de-en -n -w Haus` works on the server host and that the dictionary is installed.
+- For local search in Docker, verify `docker compose exec vokabelheft translate -l de-en -n -w Haus` works. For a native install, run `translate -l de-en -n -w Haus` on the server host.
 - For hosted services, verify the matching environment variable, API access, region, billing, and quota. Provider failures are reported rather than silently substituted.
 
 ### Vocabulary Not Saving

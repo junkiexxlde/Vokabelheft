@@ -16,7 +16,8 @@ const AppState = {
         mistral: ''
     },
     darkMode: false,
-    language: 'en' // 'en' for English, 'de' for German
+    language: 'de', // 'en' for English, 'de' for German
+    activePage: 'vocabulary'
 };
 
 // Language data
@@ -34,6 +35,7 @@ const translations = {
         saveBtn: 'Save Vocabulary',
         loadBtn: 'Load Vocabulary',
         clearBtn: 'Clear All',
+        clearInputsBtn: 'Clear inputs',
         vocabTitle: 'Your Vocabulary List',
         vocabCount: 'entries',
         noEntries: 'No vocabulary entries yet. Add your first word!',
@@ -83,6 +85,7 @@ const translations = {
         saveBtn: 'Vokabeln speichern',
         loadBtn: 'Vokabeln laden',
         clearBtn: 'Alles löschen',
+        clearInputsBtn: 'Eingaben leeren',
         vocabTitle: 'Ihre Vokabelliste',
         vocabCount: 'Einträge',
         noEntries: 'Noch keine Vokabeleinträge. Fügen Sie Ihr erstes Wort hinzu!',
@@ -118,6 +121,167 @@ const translations = {
         correctionPlaceholder: 'Korrigierten Text eingeben...',
         cancelBtn: 'Abbrechen',
         applyBtn: 'Korrektur anwenden'
+    }
+};
+
+const siteTranslations = {
+    de: {
+        navLabel: 'Hauptnavigation',
+        brandLabel: 'Vokabelheft Startseite',
+        brandSubtitle: 'Lernbereich',
+        workspaceLabel: 'Arbeitsbereich',
+        vocabularyNav: 'Vokabeln',
+        settingsNav: 'Einstellungen',
+        preferencesLabel: 'Einstellungen',
+        toggleTheme: 'Darstellung umschalten',
+        toggleLanguage: 'Sprache wechseln',
+        darkMode: 'Dunkles Design',
+        lightModeLabel: 'Helles Design',
+        languageSwitch: 'English',
+        sidebarFootnote: 'Ein ruhiger Ort, um deine Sprachkenntnisse zu erweitern.',
+        learningSpace: 'LERNBEREICH',
+        export: 'Exportieren',
+        import: 'Importieren',
+        personalDictionary: 'DEIN PERSÖNLICHES WÖRTERBUCH',
+        buildVocabulary: 'Baue deinen Wortschatz auf',
+        workspaceIntro: 'Schlage Wörter nach, füge sie deiner Sammlung hinzu und lerne in deinem Tempo weiter.',
+        swapLanguages: 'Deutsch und Englisch tauschen',
+        translatorLabel: 'Wortübersetzer',
+        quickLookup: 'Schnellsuche',
+        quickLookupIntro: 'Durchsuche das Offline-Wörterbuch oder übersetze mit einem Anbieter.',
+        offlineDictionary: 'Offline-Wörterbuch',
+        german: 'Deutsch',
+        english: 'Englisch',
+        germanText: 'Deutscher Text',
+        englishText: 'Englischer Text',
+        speak: 'Sprechen',
+        stop: 'Stopp',
+        search: 'Suchen',
+        translate: 'Übersetzen',
+        providerLabel: 'Mit einem Anbieter übersetzen',
+        useService: 'Anbieter verwenden',
+        wholeWordHint: 'Die Suche findet exakte Wörter im lokalen Wörterbuch.',
+        addVocab: 'Zu Vokabeln hinzufügen',
+        clearInputs: 'Eingaben leeren',
+        yourCollection: 'DEINE SAMMLUNG',
+        vocabList: 'Vokabelliste',
+        manageEntries: 'Einträge verwalten',
+        actions: 'Aktionen',
+        personalize: 'ARBEITSBEREICH ANPASSEN',
+        settingsIntro: 'Verwalte Übersetzungsdienste und bearbeite deine gespeicherten Vokabeln.',
+        translationServices: 'ÜBERSETZUNGSDIENSTE',
+        apiKeys: 'API-Schlüssel',
+        apiKeyIntro: 'Schlüssel werden in diesem Browser gespeichert und nur an den ausgewählten Dienst gesendet.',
+        deeplKey: 'DeepL-API-Schlüssel',
+        deeplDesc: 'Gib deinen DeepL-Schlüssel ein, um DeepL-Übersetzungen zu aktivieren.',
+        deeplPlaceholder: 'DeepL-API-Schlüssel eingeben',
+        googleKey: 'Google-Übersetzungs-API-Schlüssel',
+        googleDesc: 'Verbinde Google Cloud Translation für Online-Übersetzungen.',
+        googlePlaceholder: 'Google-API-Schlüssel eingeben',
+        bingKey: 'Bing-Übersetzungs-API-Schlüssel',
+        bingDesc: 'Verwende einen Azure-Translator-Schlüssel. Lege die Region in der Serverumgebung fest.',
+        bingPlaceholder: 'Bing-API-Schlüssel eingeben',
+        mistralKey: 'Mistral-API-Schlüssel',
+        mistralDesc: 'Aktiviere KI-gestützte Übersetzungen mit Mistral.',
+        mistralPlaceholder: 'Mistral-API-Schlüssel eingeben',
+        saveKey: 'Schlüssel speichern',
+        defaultsTitle: 'Standardeinstellungen',
+        defaultsEyebrow: 'DARSTELLUNG & SPRACHE',
+        defaultsIntro: 'Diese Auswahl wird beim nächsten Öffnen der App verwendet.',
+        defaultMode: 'Standarddarstellung',
+        lightMode: 'Hell',
+        darkModeOption: 'Dunkel',
+        defaultLanguage: 'Standardsprache',
+        manageVocab: 'Vokabeln verwalten',
+        manageVocabIntro: 'Füge Wörter hinzu oder bearbeite und lösche vorhandene Einträge.',
+        germanWord: 'Deutsches Wort',
+        englishWord: 'Englisches Wort',
+        addEntry: 'Eintrag hinzufügen',
+        save: 'Speichern',
+        delete: 'Löschen',
+        noEntriesShort: 'Noch keine Vokabeleinträge vorhanden.',
+        searchAction: 'Suchen',
+        edit: 'Bearbeiten',
+        deleteAction: 'Löschen'
+    },
+    en: {
+        navLabel: 'Main navigation',
+        brandLabel: 'Vokabelheft home',
+        brandSubtitle: 'Vocabulary workspace',
+        workspaceLabel: 'Workspace',
+        vocabularyNav: 'Vocabulary',
+        settingsNav: 'Settings',
+        preferencesLabel: 'Preferences',
+        toggleTheme: 'Toggle appearance',
+        toggleLanguage: 'Switch language',
+        darkMode: 'Dark mode',
+        lightModeLabel: 'Light mode',
+        languageSwitch: 'Deutsch',
+        sidebarFootnote: 'A calm space to build your language skills.',
+        learningSpace: 'LEARNING SPACE',
+        export: 'Export',
+        import: 'Import',
+        personalDictionary: 'YOUR PERSONAL DICTIONARY',
+        buildVocabulary: 'Build your vocabulary',
+        workspaceIntro: 'Look up a word, add it to your collection, and keep learning at your own pace.',
+        swapLanguages: 'Switch German and English',
+        translatorLabel: 'Word translator',
+        quickLookup: 'Quick lookup',
+        quickLookupIntro: 'Search your offline dictionary or translate with a provider.',
+        offlineDictionary: 'Offline dictionary',
+        german: 'German',
+        english: 'English',
+        germanText: 'German text',
+        englishText: 'English text',
+        speak: 'Speak',
+        stop: 'Stop',
+        search: 'Search',
+        translate: 'Translate',
+        providerLabel: 'Translate with a provider',
+        useService: 'Use a service',
+        wholeWordHint: 'Search finds exact words in the local dictionary.',
+        addVocab: 'Add to vocabulary',
+        clearInputs: 'Clear inputs',
+        yourCollection: 'YOUR COLLECTION',
+        vocabList: 'Vocabulary list',
+        manageEntries: 'Manage entries',
+        actions: 'Actions',
+        personalize: 'PERSONALIZE YOUR WORKSPACE',
+        settingsIntro: 'Manage translation services and edit your saved vocabulary.',
+        translationServices: 'TRANSLATION SERVICES',
+        apiKeys: 'API keys',
+        apiKeyIntro: 'Keys are saved in this browser and sent only to the selected service.',
+        deeplKey: 'DeepL API key',
+        deeplDesc: 'Enter your DeepL key to enable DeepL translations.',
+        deeplPlaceholder: 'Enter DeepL API key',
+        googleKey: 'Google Translate API key',
+        googleDesc: 'Connect Google Cloud Translation for hosted translations.',
+        googlePlaceholder: 'Enter Google API key',
+        bingKey: 'Bing Translator API key',
+        bingDesc: 'Use an Azure Translator key. Set the region in your server environment.',
+        bingPlaceholder: 'Enter Bing API key',
+        mistralKey: 'Mistral API key',
+        mistralDesc: 'Enable AI-powered translations with Mistral.',
+        mistralPlaceholder: 'Enter Mistral API key',
+        saveKey: 'Save key',
+        defaultsTitle: 'Default preferences',
+        defaultsEyebrow: 'APPEARANCE & LANGUAGE',
+        defaultsIntro: 'These choices will be used the next time you open the app.',
+        defaultMode: 'Default appearance',
+        lightMode: 'Light',
+        darkModeOption: 'Dark',
+        defaultLanguage: 'Default language',
+        manageVocab: 'Manage vocabulary',
+        manageVocabIntro: 'Add, edit, or delete saved vocabulary entries.',
+        germanWord: 'German word',
+        englishWord: 'English word',
+        addEntry: 'Add entry',
+        save: 'Save',
+        delete: 'Delete',
+        noEntriesShort: 'No vocabulary entries yet.',
+        searchAction: 'Search',
+        edit: 'Edit',
+        deleteAction: 'Delete'
     }
 };
 
@@ -180,8 +344,42 @@ function t(key) {
     return translations[AppState.language][key] || key;
 }
 
+function ui(key) {
+    return siteTranslations[AppState.language][key] || key;
+}
+
+function applySiteTranslations() {
+    document.documentElement.lang = AppState.language;
+    document.title = AppState.language === 'de'
+        ? 'Vokabelheft'
+        : 'Vokabelheft | Vocabulary Notebook';
+
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.dataset.i18n;
+        if (siteTranslations[AppState.language][key]) {
+            element.textContent = siteTranslations[AppState.language][key];
+        }
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.dataset.i18nPlaceholder;
+        if (siteTranslations[AppState.language][key]) {
+            element.placeholder = siteTranslations[AppState.language][key];
+        }
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(element => {
+        const key = element.dataset.i18nAria;
+        if (siteTranslations[AppState.language][key]) {
+            element.setAttribute('aria-label', siteTranslations[AppState.language][key]);
+        }
+    });
+    const languageLabel = elements.languageBtn?.querySelector('span:last-child');
+    if (languageLabel) languageLabel.textContent = ui('languageSwitch');
+}
+
 // Helper function to update UI language
 function updateLanguageUI() {
+    applySiteTranslations();
+
     // Update all UI elements with current language
     updateLanguageDirectionUI();
 
@@ -189,11 +387,12 @@ function updateLanguageUI() {
     if (elements.addVocabBtn) elements.addVocabBtn.innerHTML = '<span class="btn-icon">➕</span> ' + t('addVocabBtn');
     if (elements.saveBtn) elements.saveBtn.innerHTML = '<span class="btn-icon">💾</span> ' + t('saveBtn');
     if (elements.loadBtn) elements.loadBtn.innerHTML = '<span class="btn-icon">📂</span> ' + t('loadBtn');
-    if (elements.clearBtn) elements.clearBtn.innerHTML = '<span class="btn-icon">🗑️</span> ' + t('clearBtn');
+    if (elements.clearBtn) elements.clearBtn.innerHTML = '<span class="btn-icon">×</span> ' + t('clearInputsBtn');
 
     // Update toggle buttons
     if (elements.darkModeBtn) elements.darkModeBtn.title = t('darkModeBtn');
     if (elements.languageBtn) elements.languageBtn.title = t('languageBtn');
+    if (elements.languageBtn) elements.languageBtn.setAttribute('aria-label', ui('toggleLanguage'));
 
     // Update headers (guard selectors which may not exist)
     const germanTitleFlag = document.querySelector('.german-column .column-title .flag-emoji');
@@ -230,11 +429,17 @@ function updateLanguageUI() {
     
     // Update toast messages will use current language automatically
     updateVocabularyCount();
+    const currentPageTitle = document.getElementById('currentPageTitle');
+    if (currentPageTitle) currentPageTitle.textContent = AppState.activePage === 'settings' ? ui('settingsNav') : ui('vocabularyNav');
+    renderVocabulary();
+    if (AppState.activePage === 'settings') renderSettingsList();
 }
 
 // Update vocabulary count with current language
 function updateVocabularyCount() {
     elements.vocabCount.textContent = `${AppState.vocabulary.length} ${t('vocabCount')}`;
+    const sidebarCount = document.getElementById('sidebarVocabCount');
+    if (sidebarCount) sidebarCount.textContent = AppState.vocabulary.length;
 }
 
 function getInputForLanguage(language) {
@@ -271,11 +476,27 @@ function updateLanguageDirectionUI() {
 
     if (leftHeading) leftHeading.textContent = label(leftLanguage);
     if (rightHeading) rightHeading.textContent = label(rightLanguage);
-    if (elements.germanInput) elements.germanInput.placeholder = `${label(leftLanguage)}...`;
-    if (elements.englishInput) elements.englishInput.placeholder = `${label(rightLanguage)}...`;
+    if (elements.germanInput) {
+        elements.germanInput.placeholder = `${label(leftLanguage)}...`;
+        elements.germanInput.setAttribute('aria-label', ui(leftLanguage === 'de' ? 'germanText' : 'englishText'));
+    }
+    if (elements.englishInput) {
+        elements.englishInput.placeholder = `${label(rightLanguage)}...`;
+        elements.englishInput.setAttribute('aria-label', ui(rightLanguage === 'de' ? 'germanText' : 'englishText'));
+    }
+    const leftDot = document.getElementById('leftLanguageDot');
+    const rightDot = document.getElementById('rightLanguageDot');
+    if (leftDot) {
+        leftDot.classList.toggle('german-dot', leftLanguage === 'de');
+        leftDot.classList.toggle('english-dot', leftLanguage === 'en');
+    }
+    if (rightDot) {
+        rightDot.classList.toggle('german-dot', rightLanguage === 'de');
+        rightDot.classList.toggle('english-dot', rightLanguage === 'en');
+    }
     if (swapButton) {
-        swapButton.textContent = `⇄ ${label(leftLanguage)} ↔ ${label(rightLanguage)}`;
-        swapButton.setAttribute('aria-label', `Switch ${label(leftLanguage)} and ${label(rightLanguage)}`);
+        swapButton.innerHTML = `<span aria-hidden="true">⇄</span> ${label(leftLanguage)} ↔ ${label(rightLanguage)}`;
+        swapButton.setAttribute('aria-label', ui('swapLanguages'));
         swapButton.setAttribute('aria-pressed', String(AppState.languagesSwapped));
     }
 }
@@ -291,6 +512,7 @@ function init() {
     
     // Load saved vocabulary from localStorage if exists
     loadVocabularyFromStorage();
+    showAppPage('vocabulary', false);
 }
 
 // ===== Event Listeners =====
@@ -323,6 +545,10 @@ function setupEventListeners() {
 
     if (elements.darkModeBtn) elements.darkModeBtn.addEventListener('click', toggleDarkMode);
     if (elements.languageBtn) elements.languageBtn.addEventListener('click', toggleLanguage);
+    const defaultModeSelect = document.getElementById('defaultModeSelect');
+    const defaultLanguageSelect = document.getElementById('defaultLanguageSelect');
+    if (defaultModeSelect) defaultModeSelect.addEventListener('change', saveDefaultPreferences);
+    if (defaultLanguageSelect) defaultLanguageSelect.addEventListener('change', saveDefaultPreferences);
     const swapLanguagesButton = document.getElementById('swapLanguagesBtn');
     if (swapLanguagesButton) swapLanguagesButton.addEventListener('click', swapInputs);
 
@@ -375,15 +601,15 @@ function updateDarkModeUI() {
     if (!elements.darkModeBtn) return;
 
     elements.darkModeBtn.innerHTML = AppState.darkMode
-        ? '<span class="toggle-icon">☀️</span> Light mode'
-        : '<span class="toggle-icon">🌙</span> Dark mode';
-    elements.darkModeBtn.title = AppState.darkMode ? 'Switch to light mode' : 'Switch to dark mode';
+        ? `<span aria-hidden="true">☀</span><span>${ui('lightModeLabel')}</span>`
+        : `<span aria-hidden="true">◐</span><span>${ui('darkMode')}</span>`;
+    elements.darkModeBtn.title = ui('toggleTheme');
+    elements.darkModeBtn.setAttribute('aria-label', ui('toggleTheme'));
     elements.darkModeBtn.setAttribute('aria-pressed', String(AppState.darkMode));
 }
 
 // Toggle language
 function toggleLanguage() {
-    const oldLanguage = AppState.language;
     AppState.language = AppState.language === 'en' ? 'de' : 'en';
     
     // Save preference
@@ -391,10 +617,10 @@ function toggleLanguage() {
     
     // Update UI
     updateLanguageUI();
+    updateDarkModeUI();
     
     // Show message in new language
-    const languageName = AppState.language === 'en' ? 'English' : 'Deutsch';
-    showToast(`Sprache/Language switched to ${languageName}`, 'info');
+    showToast(AppState.language === 'en' ? 'Language changed to English.' : 'Sprache auf Deutsch umgestellt.', 'info');
 }
 
 // ===== Keyboard Shortcuts =====
@@ -424,20 +650,74 @@ function handleKeyboardShortcuts(e) {
 }
 
 function loadPreferences() {
-    // Load dark mode preference
-    const savedDarkMode = localStorage.getItem('darkMode');
-    AppState.darkMode = savedDarkMode === 'true';
+    let defaults = {};
+    try {
+        const storedDefaults = localStorage.getItem('vokabelheft_defaults');
+        if (storedDefaults) {
+            const parsedDefaults = JSON.parse(storedDefaults);
+            if (parsedDefaults && typeof parsedDefaults === 'object' && !Array.isArray(parsedDefaults)) {
+                defaults = parsedDefaults;
+            }
+        }
+    } catch (error) {
+        console.error('Could not load default preferences:', error);
+        showToast(AppState.language === 'de'
+            ? 'Standardeinstellungen konnten nicht geladen werden.'
+            : 'Could not load default preferences.', 'error');
+    }
+
+    AppState.darkMode = typeof defaults.darkMode === 'boolean'
+        ? defaults.darkMode
+        : false;
     document.body.classList.toggle('dark-mode', AppState.darkMode);
     
-    // Load language preference
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage === 'de' || savedLanguage === 'en') {
-        AppState.language = savedLanguage;
-    }
+    AppState.language = defaults.language === 'de' || defaults.language === 'en'
+        ? defaults.language
+        : 'de';
+
+    const defaultModeSelect = document.getElementById('defaultModeSelect');
+    const defaultLanguageSelect = document.getElementById('defaultLanguageSelect');
+    if (defaultModeSelect) defaultModeSelect.value = typeof defaults.darkMode === 'boolean'
+        ? (defaults.darkMode ? 'dark' : 'light')
+        : 'light';
+    if (defaultLanguageSelect) defaultLanguageSelect.value = defaults.language || 'de';
     
     // Update UI based on loaded preferences
     updateLanguageUI();
     updateDarkModeUI();
+}
+
+function saveDefaultPreferences() {
+    const mode = document.getElementById('defaultModeSelect')?.value;
+    const language = document.getElementById('defaultLanguageSelect')?.value;
+    if (!['light', 'dark'].includes(mode) || !['de', 'en'].includes(language)) {
+        showToast(AppState.language === 'de'
+            ? 'Ungültige Standardeinstellung.'
+            : 'Invalid default preference.', 'error');
+        return;
+    }
+
+    const defaults = { darkMode: mode === 'dark', language };
+    try {
+        localStorage.setItem('vokabelheft_defaults', JSON.stringify(defaults));
+    } catch (error) {
+        console.error('Could not save default preferences:', error);
+        showToast(AppState.language === 'de'
+            ? 'Standardeinstellungen konnten nicht gespeichert werden.'
+            : 'Could not save default preferences.', 'error');
+        return;
+    }
+
+    AppState.darkMode = defaults.darkMode;
+    AppState.language = defaults.language;
+    document.body.classList.toggle('dark-mode', AppState.darkMode);
+    localStorage.setItem('darkMode', String(AppState.darkMode));
+    localStorage.setItem('language', AppState.language);
+    updateLanguageUI();
+    updateDarkModeUI();
+    showToast(AppState.language === 'de'
+        ? 'Standardsprache und Darstellung gespeichert.'
+        : 'Default language and appearance saved.', 'success');
 }
 
 // ===== Speech Recognition =====
@@ -799,8 +1079,8 @@ function renderVocabulary() {
     const tbody = elements.vocabularyTableBody;
     tbody.innerHTML = '';
     
-    // Update count
-    elements.vocabCount.textContent = `${AppState.vocabulary.length} entries`;
+    updateVocabularyCount();
+    if (AppState.activePage === 'settings') renderSettingsList();
     
     if (AppState.vocabulary.length === 0) {
         tbody.innerHTML = `
@@ -831,14 +1111,14 @@ function renderVocabulary() {
             <td class="german-cell">${escapeHtml(item.german) || '<span class="empty-placeholder">—</span>'}</td>
             <td class="english-cell">${escapeHtml(item.english) || '<span class="empty-placeholder">—</span>'}</td>
             <td class="actions-cell">
-                <button class="action-btn search" onclick="searchVocabularyEntry(${item.id})" title="Search">
-                    <span>🔎</span> Search
+                <button class="action-btn search" onclick="searchVocabularyEntry(${item.id})" title="${ui('searchAction')}">
+                    <span>🔎</span> ${ui('searchAction')}
                 </button>
-                <button class="action-btn edit" onclick="editVocabularyEntry(${item.id})" title="Edit">
-                    <span>✏️</span> Edit
+                <button class="action-btn edit" onclick="editVocabularyEntry(${item.id})" title="${ui('edit')}">
+                    <span>✏️</span> ${ui('edit')}
                 </button>
-                <button class="action-btn delete" onclick="deleteVocabularyEntry(${item.id})" title="Delete">
-                    <span>🗑️</span> Delete
+                <button class="action-btn delete" onclick="deleteVocabularyEntry(${item.id})" title="${ui('deleteAction')}">
+                    <span>🗑️</span> ${ui('deleteAction')}
                 </button>
             </td>
         `;
@@ -1163,22 +1443,36 @@ window.translateWithVokabelheftAI = translateWithVokabelheftAI;
 window.lookupTranslateFromVocabulary = lookupTranslateFromVocabulary;
 window.translateFromVocabularyOrGoogle = translateFromVocabularyOrGoogle;
 
-// Settings modal functions
-function openSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    if (!modal) return;
-    Object.entries(apiKeyInputIds).forEach(([provider, inputId]) => {
-        const input = document.getElementById(inputId);
-        if (input) input.value = AppState.apiKeys[provider];
-    });
-    modal.style.display = 'flex';
-    renderSettingsList();
-}
+function showAppPage(page, focusHeading = true) {
+    const pageElement = document.querySelector(`[data-page="${page}"]`);
+    if (!pageElement) return;
 
-function closeSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    if (!modal) return;
-    modal.style.display = 'none';
+    AppState.activePage = page;
+    document.querySelectorAll('.page-view').forEach(view => {
+        view.hidden = view !== pageElement;
+    });
+    document.querySelectorAll('[data-page-link]').forEach(link => {
+        const active = link.dataset.pageLink === page;
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+    });
+
+    const title = document.getElementById('currentPageTitle');
+    if (title) title.textContent = page === 'settings' ? ui('settingsNav') : ui('vocabularyNav');
+
+    if (page === 'settings') {
+        Object.entries(apiKeyInputIds).forEach(([provider, inputId]) => {
+            const input = document.getElementById(inputId);
+            if (input) input.value = AppState.apiKeys[provider];
+        });
+        renderSettingsList();
+    }
+
+    if (focusHeading) {
+        const heading = pageElement.querySelector('h1');
+        if (heading) heading.focus({ preventScroll: true });
+    }
 }
 
 const apiKeyStorageKey = 'vokabelheft_api_keys';
@@ -1209,7 +1503,7 @@ function saveApiKey(provider) {
     const inputId = apiKeyInputIds[provider];
     const input = inputId && document.getElementById(inputId);
     if (!input) {
-        showToast('Unknown translation service.', 'error');
+        showToast(AppState.language === 'de' ? 'Unbekannter Übersetzungsdienst.' : 'Unknown translation service.', 'error');
         return;
     }
 
@@ -1219,26 +1513,34 @@ function saveApiKey(provider) {
         localStorage.setItem(apiKeyStorageKey, JSON.stringify(updatedKeys));
     } catch (error) {
         console.error('Could not save API key:', error);
-        showToast('API key could not be saved in this browser.', 'error');
+        showToast(AppState.language === 'de'
+            ? 'Der API-Schlüssel konnte in diesem Browser nicht gespeichert werden.'
+            : 'API key could not be saved in this browser.', 'error');
         return;
     }
 
     AppState.apiKeys[provider] = key;
-    showToast(`${provider} API key saved in this browser.`, 'success');
+    showToast(AppState.language === 'de'
+        ? `${provider}-API-Schlüssel wurde in diesem Browser gespeichert.`
+        : `${provider} API key saved in this browser.`, 'success');
 }
 
 function renderSettingsList() {
     const tbody = document.getElementById('settingsVocabBody');
     if (!tbody) return;
     tbody.innerHTML = '';
+    if (AppState.vocabulary.length === 0) {
+        tbody.innerHTML = `<tr><td class="no-entries" colspan="3">${ui('noEntriesShort')}</td></tr>`;
+        return;
+    }
     AppState.vocabulary.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="padding:6px;border:1px solid #e5e7eb;"><input data-id="${item.id}" class="settings-german" value="${escapeHtml(item.german || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;" /></td>
-            <td style="padding:6px;border:1px solid #e5e7eb;"><input data-id="${item.id}" class="settings-english" value="${escapeHtml(item.english || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;" /></td>
-            <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">
-                <button class="btn" data-action="save" data-id="${item.id}">Save</button>
-                <button class="btn" data-action="delete" data-id="${item.id}">Delete</button>
+            <td><input data-id="${item.id}" class="settings-german" value="${escapeHtml(item.german || '')}" aria-label="${ui('germanWord')}" /></td>
+            <td><input data-id="${item.id}" class="settings-english" value="${escapeHtml(item.english || '')}" aria-label="${ui('englishWord')}" /></td>
+            <td>
+                <button class="btn btn-secondary" data-action="save" data-id="${item.id}" type="button">${ui('save')}</button>
+                <button class="action-btn delete" data-action="delete" data-id="${item.id}" type="button">${ui('delete')}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -1251,13 +1553,12 @@ function renderSettingsList() {
             const germanInput = tbody.querySelector(`input.settings-german[data-id="${id}"]`);
             const englishInput = tbody.querySelector(`input.settings-english[data-id="${id}"]`);
             const entry = AppState.vocabulary.find(it => it.id === id);
-            if (!entry) return;
+            if (!entry || !germanInput || !englishInput) return;
             entry.german = germanInput.value.trim();
             entry.english = englishInput.value.trim();
             saveVocabularyToStorage();
             renderVocabulary();
-            renderSettingsList();
-            showToast('Entry updated', 'success');
+            showToast(AppState.language === 'de' ? 'Eintrag aktualisiert.' : 'Entry updated.', 'success');
         });
     });
 
@@ -1265,7 +1566,6 @@ function renderSettingsList() {
         btn.addEventListener('click', () => {
             const id = Number(btn.dataset.id);
             deleteVocabularyEntry(id, true);
-            renderSettingsList();
         });
     });
 }
@@ -1274,24 +1574,24 @@ function settingsAddEntry() {
     const g = document.getElementById('settingsGermanInput').value.trim();
     const e = document.getElementById('settingsEnglishInput').value.trim();
     if (!g && !e) {
-        showToast('Please enter German or English text', 'warning');
+        showToast(AppState.language === 'de'
+            ? 'Bitte gib einen deutschen oder englischen Text ein.'
+            : 'Please enter German or English text.', 'warning');
         return;
     }
     AppState.vocabulary.push({ id: Date.now(), german: g, english: e, createdAt: new Date().toISOString() });
     saveVocabularyToStorage();
     renderVocabulary();
-    renderSettingsList();
     document.getElementById('settingsGermanInput').value = '';
     document.getElementById('settingsEnglishInput').value = '';
-    showToast('Entry added', 'success');
+    showToast(AppState.language === 'de' ? 'Eintrag hinzugefügt.' : 'Entry added.', 'success');
 }
 
-// Wire settings modal buttons (if present)
 document.addEventListener('click', (e) => {
     const target = e.target instanceof Element ? e.target : null;
     if (!target) return;
-    if (target.closest('#settingsBtn')) openSettingsModal();
-    if (target.closest('#settingsCloseBtn')) closeSettingsModal();
+    const pageLink = target.closest('[data-page-link]');
+    if (pageLink) showAppPage(pageLink.dataset.pageLink);
     if (target.closest('#settingsAddBtn')) settingsAddEntry();
     const saveKeyButton = target.closest('[data-save-api-key]');
     if (saveKeyButton) saveApiKey(saveKeyButton.dataset.saveApiKey);
